@@ -102,31 +102,15 @@ class Database(object):
 
     # Queries (SELECT/INSERT) functions 
 
-    def get_channel_id(self, name, public = None, archived = None):
-        query_s = "SELECT * FROM channels WHERE name = %s"
-        self.cursor.execute(query_s, (name))
-        results =  self.cursor.fetchall()
-        if len(results) == 0:
-            if public is not None and archived is not None:
-                query_i = "INSERT INTO channels (name, public, archived) VALUES (%s, %s, %s)"
-                self.cursor.execute(query_i, (name, public, archived))
-            else:
-                query_i = "INSERT INTO channels (name) VALUES (%s)"
-                self.cursor.execute(query_i, (name))
-            self.conn.commit()
-            self.cursor.execute(query_s, (name))
-            results =  self.cursor.fetchall()
-        channel_id = str(results[0][0])
-        return channel_id
-
     def so_insert_event(self, event, fields):
         query =  "INSERT INTO stackoverflow_events ("
         for field in fields:
             query += field.replace(" ","_")+","
         query = query[:-1]
         query += ") "
-        query += "VALUES ("+event[:-1]+")"
-        print query
+        query += "VALUES ("
+        # Convert to Unicode to support unicode values
+        query = u' '.join((query, event, ")")).encode('utf-8')
         self.cursor.execute(query)
         self.conn.commit()
 
