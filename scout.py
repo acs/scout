@@ -25,13 +25,9 @@
 #   Santiago Dueñas <sduenas@bitergia.com>
 #
 
-import calendar
 import io
 import logging
-import requests
-import os
 import sys
-import re
 
 from datetime import datetime
 from optparse import OptionParser
@@ -108,7 +104,7 @@ def string_to_datetime(s, schema):
 
 def load_csv_file(filepath, db, backend = "stackoverflow"):
     """Load a CSV events file in MySQL."""
-    if backend != "stackoverflow": 
+    if backend not in ("stackoverflow","github"):
         raise ("Backend not supported: " + backend)
     try:
         infile = io.open(filepath, 'rt')
@@ -120,13 +116,15 @@ def load_csv_file(filepath, db, backend = "stackoverflow"):
     # last_date = db.get_last_date(channel_id)
 
     try:
-        if backend == "stackoverflow":
-            fields = None
-            for event_data in infile:
-                if fields is None:
-                    fields = event_data[:-1].split(",")
-                    continue
-                db.so_insert_event(event_data, fields)
+        fields = None
+        for event_data in infile:
+            if fields is None:
+                fields = event_data[:-1].split(",")
+                continue
+            if backend == "stackoverflow":
+                db.stackoverflow_insert_event(event_data, fields)
+            elif backend == "github":
+                db.github_insert_event(event_data, fields)
         count_events_new += 1
     except Exception as e:
         raise Error("Error parsing %s file: %s" % (filepath, e))
@@ -148,6 +146,27 @@ def create_events(filepath, backend = "stackoverflow"):
         res = dsquery.ExecuteQuery(q)
         createJSON(res, filepath)
 
+    elif backend == "github":
+        table = "stackoverflow_github"
+        # Common fields for all events: date, summmary, url
+        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary, "
+        q += " ViewCount as views, Score as score "
+        q += " FROM " + table
+        q += " ORDER BY date DESC "
+        res = dsquery.ExecuteQuery(q)
+        createJSON(res, filepath)
+
+
+
+def create_tables (backend):
+    if opts.backend == "stackoverflow":
+        db.create_tables_stackoverflow()
+    elif opts.backend == "github":
+        db.create_tables_github()
+    else:
+        logging.error(opts.backend + " not supported")
+        raise
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,format='%(asctime)s %(message)s')
 
@@ -155,16 +174,15 @@ if __name__ == '__main__':
 
     db = Database(opts.dbuser, opts.dbpassword, opts.dbname)
     db.open_database()
-    db.create_tables()
+    create_tables(opts.backend)
     count_events = count_events_new = count_events_drop = count_files_drop = 0
     count_special_events = 0
 
-
     try:
-        if opts.json_file:
-            create_events(opts.json_file)
+        if not opts.events_file and opts.json_file:
+            create_events(opts.json_file, opts.backend)
         else:
-            load_csv_file(opts.events_file, db)
+            load_csv_file(opts.events_file, db, opts.backend)
     except Error as e:
         print(e)
 

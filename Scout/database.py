@@ -33,8 +33,11 @@ TableIndex = namedtuple('TableIndex', 'name table field')
 
 class Database(object):
 
-    INDEXES = (TableIndex('sotitle', 'stackoverflow_events', 'title'),
-               TableIndex('socreation', 'stackoverflow_events', 'CreationDate'))
+    INDEXES_stackoverflow = (TableIndex('sotitle', 'stackoverflow_events', 'title'),
+                             TableIndex('socreation', 'stackoverflow_events', 'CreationDate'))
+    INDEXES_github = (TableIndex('ghrepo', 'github_events', 'repo_name'),
+                      TableIndex('ghcreation', 'github_events', 'created_at'))
+
 
     def __init__(self, myuser, mypassword, mydb):
         self.myuser = myuser
@@ -55,7 +58,7 @@ class Database(object):
         self.conn.close()
 
     # Management functions
-    def create_tables(self):
+    def create_tables_stackoverflow(self):
         """ The name of the fields are the same than CSV from Data Explorer """
         query = "CREATE TABLE IF NOT EXISTS stackoverflow_events (" + \
                 "id int(11) NOT NULL AUTO_INCREMENT," + \
@@ -75,15 +78,42 @@ class Database(object):
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
         self.cursor.execute(query)
 
-        self.drop_indexes()
-        self.create_indexes()
+        self.drop_indexes("stackoverflow")
+        self.create_indexes("stackoverflow")
 
-    def drop_tables(self):
+    # Management functions
+    def create_tables_github(self):
+        """ The name of the fields are the same than Big Query tables  """
+        # type,repo_name,repo_url,created_at,payload
+        query = "CREATE TABLE IF NOT EXISTS github_events (" + \
+                "id int(11) NOT NULL AUTO_INCREMENT," + \
+                "type varchar(32)," + \
+                "repo_name VARCHAR(255) NULL," + \
+                "repo_url VARCHAR(255) NULL," + \
+                "payload TEXT NULL," + \
+                "created_at DATETIME NOT NULL," + \
+                "PRIMARY KEY (id)" + \
+                ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
+        self.cursor.execute(query)
+
+        self.drop_indexes("github")
+        self.create_indexes("github")
+
+    def drop_tables_stackoverflow(self):
         query = "DROP TABLE IF EXISTS stackoverflow_events"
         self.cursor.execute(query)
 
-    def create_indexes(self):
-        for idx in Database.INDEXES:
+    def drop_tables_github(self):
+        query = "DROP TABLE IF EXISTS github_events"
+        self.cursor.execute(query)
+
+    def create_indexes(self, backend = "stackoverflow"):
+        if backend == "stackoverflow":
+            indexes = Database.INDEXES_stackoverflow
+        elif backend == "github":
+            indexes = Database.INDEXES_github
+        else: return
+        for idx in indexes:
             try:
                 query = "CREATE INDEX %s ON %s (%s);" % (idx.name, idx.table, idx.field)
                 self.cursor.execute(query)
@@ -91,8 +121,14 @@ class Database(object):
             except MySQLdb.Error as e:
                 print("Warning: Creating %s index" % idx.name, e)
 
-    def drop_indexes(self):
-        for idx in Database.INDEXES:
+    def drop_indexes(self, backend = "stackoverflow"):
+        if backend == "stackoverflow":
+            indexes = Database.INDEXES_stackoverflow
+        elif backend == "github":
+            indexes = Database.INDEXES_github
+        else: return
+
+        for idx in indexes:
             try:
                 query = "DROP INDEX %s ON %s;" % (idx.name, idx.table)
                 self.cursor.execute(query)
@@ -102,7 +138,7 @@ class Database(object):
 
     # Queries (SELECT/INSERT) functions 
 
-    def so_insert_event(self, event, fields):
+    def stackoverflow_insert_event(self, event, fields):
         query =  "INSERT INTO stackoverflow_events ("
         for field in fields:
             query += field.replace(" ","_")+","
@@ -114,12 +150,22 @@ class Database(object):
         self.cursor.execute(query)
         self.conn.commit()
 
-    def _escape(self, s):
-        if not s:
-            return None
-        try:
-            s = self.conn.escape_string(s)
-        except UnicodeEncodeError:
-            # Don't encode unicode
-            pass
-        return s
+    def github_insert_event(self, event, fields):
+        from datetime import datetime
+        #  type,repo_name,repo_url,created_at,payload
+        event_data = event[:-1].split(",",4)
+        timestamp =  int(float(event_data[3]))
+        event_data[3] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        event_data[4] = event_data[4].replace("'","\\'")
+        event = "','".join(event_data)
+        event = "'"+event+"'"
+        query =  "INSERT INTO github_events ("
+        for field in fields:
+            query += field.replace(" ","_")+","
+        query = query[:-1]
+        query += ") "
+        query += "VALUES ("
+        # Convert to Unicode to support unicode values
+        query = u' '.join((query, event, ")")).encode('utf-8')
+        self.cursor.execute(query)
+        self.conn.commit()
