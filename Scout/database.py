@@ -26,6 +26,7 @@
 
 import logging, MySQLdb
 from collections import namedtuple
+import json
 
 # Tuple for managing table indexes
 TableIndex = namedtuple('TableIndex', 'name table field')
@@ -156,6 +157,17 @@ class Database(object):
         event_data = event[:-1].split(",",4)
         timestamp =  int(float(event_data[3]))
         event_data[3] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        # Work with payload
+        payload = event_data[4][:-1][1:]
+        payload = payload.replace('""','"')
+        payload = json.loads(payload)
+        all_types = ["PushEvent","CreateEvent","IssuesEvent","WatchEvent","ForkEvent","DeleteEvent",\
+                     "PullRequestEvent","IssueCommentEvent","GollumEvent", \
+                     "CommitCommentEvent", "ReleaseEvent", "MemberEvent"]
+        types_on = ["CreateEvent"]
+        if not (event_data[0] in types_on and payload['ref_type'] == "repository"):
+            # Store just create repository events
+            return
         event_data[4] = event_data[4].replace("'","\\'")
         event = "','".join(event_data)
         event = "'"+event+"'"
