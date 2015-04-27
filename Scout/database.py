@@ -156,6 +156,9 @@ class Database(object):
         #  type,repo_name,repo_url,created_at,payload
         event_data = event[:-1].split(",",4)
         timestamp =  int(float(event_data[3]))
+        # url  https://api.github.com/repos/mahiso/ArduinoCentOS7
+        # should be changed to https://github.com/mahiso/ArduinoCentOS7
+        event_data[2] = event_data[2].replace("api.","").replace("repos/","")
         event_data[3] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
         # Work with payload
         payload = event_data[4][:-1][1:]

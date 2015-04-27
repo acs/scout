@@ -56,7 +56,6 @@ def read_options():
     parser.add_option("-b", "--backend",
                       action="store",
                       dest="backend",
-                      default="stackoverflow",
                       help="Backend to use for the events (stackoverflow, github, ...)")
     parser.add_option("-j","--json",
                       action="store",
@@ -135,7 +134,7 @@ def load_csv_file(filepath, db, backend = "stackoverflow"):
 def create_events(filepath, backend = "stackoverflow"):
     dsquery = DSQuery(opts.dbuser, opts.dbpassword, opts.dbname)
 
-    if backend == "stackoverflow":
+    def get_stackoverflow_events():
         table = "stackoverflow_events"
         url_posts = "http://stackoverflow.com/questions/"
         # Common fields for all events: date, summmary, url
@@ -143,20 +142,29 @@ def create_events(filepath, backend = "stackoverflow"):
         q += " ViewCount as views, Score as score "
         q += " FROM " + table
         q += " ORDER BY date DESC "
-        res = dsquery.ExecuteQuery(q)
+        return dsquery.ExecuteQuery(q)
+
+    def get_github_events():
+        table = "github_events"
+        # Common fields for all events: date, summmary, url
+        q = "SELECT repo_url as url, created_at as date, repo_name as summary "
+        q += " FROM " + table
+        q += " ORDER BY date DESC "
+        return dsquery.ExecuteQuery(q)
+
+    if backend == "stackoverflow":
+        res = {"stackoverflow":get_stackoverflow_events()}
         createJSON(res, filepath)
 
     elif backend == "github":
-        table = "stackoverflow_github"
-        # Common fields for all events: date, summmary, url
-        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary, "
-        q += " ViewCount as views, Score as score "
-        q += " FROM " + table
-        q += " ORDER BY date DESC "
-        res = dsquery.ExecuteQuery(q)
+        res = {"github":get_github_events()}
         createJSON(res, filepath)
 
-
+    elif backend is None:
+        # Generate all events
+        res = {"stackoverflow":get_stackoverflow_events(),
+               "github":get_github_events()}
+        createJSON(res, filepath)
 
 def create_tables (backend):
     if opts.backend == "stackoverflow":
@@ -171,25 +179,17 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,format='%(asctime)s %(message)s')
 
     opts = read_options()
-
     db = Database(opts.dbuser, opts.dbpassword, opts.dbname)
     db.open_database()
-    create_tables(opts.backend)
-    count_events = count_events_new = count_events_drop = count_files_drop = 0
-    count_special_events = 0
 
     try:
         if not opts.events_file and opts.json_file:
             create_events(opts.json_file, opts.backend)
         else:
+            create_tables(opts.backend)
             load_csv_file(opts.events_file, db, opts.backend)
     except Error as e:
         print(e)
 
     db.close_database()
-#     print("Total events: %s" % (count_events))
-#     print("Total special events: %s" % (count_special_events))
-#     print("Total new events: %s" % (count_events_new))
-#     print("Total drop events: %s" % (count_events_drop))
-#     print("Total log files drop: %s" % (count_files_drop))
     sys.exit(0)
