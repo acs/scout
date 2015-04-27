@@ -36,6 +36,9 @@ import re
 from datetime import datetime
 from optparse import OptionParser
 
+from vizgrimoire.metrics.query_builder import DSQuery
+from vizgrimoire.GrimoireUtils import createJSON
+
 from Scout.database import Database
 
 class Error(Exception):
@@ -59,6 +62,11 @@ def read_options():
                       dest="backend",
                       default="stackoverflow",
                       help="Backend to use for the events (stackoverflow, github, ...)")
+    parser.add_option("-j","--json",
+                      action="store",
+                      dest="json_file",
+                      default="events.json",
+                      help="Generate a JSON file with the events.")
     parser.add_option("-d", "--database",
                       action="store",
                       dest="dbname",
@@ -85,8 +93,8 @@ def read_options():
     if len(args) != 0:
         parser.error("Wrong number of arguments")
 
-    if not (opts.dbname and opts.dbuser and opts.events_file):
-        parser.error("--database --db-user --file are needed")
+    if not (opts.dbname and opts.dbuser):
+        parser.error("--database --db-user are needed")
 
     return opts
 
@@ -98,8 +106,8 @@ def string_to_datetime(s, schema):
     except ValueError:
         raise Error("Parsing date %s to %s format" % (s, schema))
 
-def parse_csv_file(filepath, db, backend = "stackoverflow"):
-    """Parse a CSV events file."""
+def load_csv_file(filepath, db, backend = "stackoverflow"):
+    """Load a CSV events file in MySQL."""
     if backend != "stackoverflow": 
         raise ("Backend not supported: " + backend)
     try:
@@ -126,6 +134,18 @@ def parse_csv_file(filepath, db, backend = "stackoverflow"):
         infile.close()
     return count_events, count_events_new
 
+def create_events(filepath, backend = "stackoverflow"):
+    dsquery = DSQuery(opts.dbuser, opts.dbpassword, opts.dbname)
+
+    if backend == "stackoverflow":
+        table = "stackoverflow_events"
+        url_posts = "http://stackoverflow.com/questions/"
+        # Common fields for all events: date, summmary, url
+        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary "
+        q += " FROM " + table
+        q += " ORDER BY date DESC "
+        res = dsquery.ExecuteQuery(q)
+        createJSON(res, filepath)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,format='%(asctime)s %(message)s')
@@ -140,7 +160,10 @@ if __name__ == '__main__':
 
 
     try:
-        parse_csv_file(opts.events_file, db)
+        if opts.json_file:
+            create_events(opts.json_file)
+        else:
+            load_csv_file(opts.events_file, db)
     except Error as e:
         print(e)
 
