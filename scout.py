@@ -141,7 +141,8 @@ def create_events(filepath, backend = "stackoverflow"):
         table = "stackoverflow_events"
         url_posts = "http://stackoverflow.com/questions/"
         # Common fields for all events: date, summmary, url
-        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary "
+        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary, "
+        q += " ViewCount as views, Score as score "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         res = dsquery.ExecuteQuery(q)
