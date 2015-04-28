@@ -159,7 +159,7 @@ def create_events(filepath, backend):
     def get_mail_events():
         table = "mail_events"
         # Common fields for all events: date, summmary, url
-        q = "SELECT sent_at as date, subject as summary "
+        q = "SELECT url, sent_at as date, subject as summary "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)

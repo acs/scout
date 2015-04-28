@@ -110,6 +110,7 @@ class Database(object):
                 "message_id varchar(255)," + \
                 "subject varchar(255)," + \
                 "sent_at DATETIME NOT NULL," + \
+                "url varchar(255)," + \
                 "PRIMARY KEY (id)" + \
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
         self.cursor.execute(query)
@@ -214,6 +215,13 @@ class Database(object):
     def mail_insert_event(self, event):
         # fields not included in CSV file
         fields = ['message_id','subject','sent_at']
+        # Add now url not included in CSV file
+        fields = ['url'] + fields
+        # url not included in the event
+        from urllib import quote
+        subject = event.split(",")[1]
+        url = "https://www.google.com/search?q="+quote(subject)
+        event = '"'+url+'"'+','+event
         query =  "INSERT INTO mail_events ("
         for field in fields:
             query += field+","
