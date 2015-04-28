@@ -101,9 +101,9 @@ def string_to_datetime(s, schema):
     except ValueError:
         raise Error("Parsing date %s to %s format" % (s, schema))
 
-def load_csv_file(filepath, db, backend = "stackoverflow"):
+def load_csv_file(filepath, db, backend):
     """Load a CSV events file in MySQL."""
-    if backend not in ("stackoverflow","github"):
+    if backend not in ("stackoverflow","github","mail"):
         raise ("Backend not supported: " + backend)
     try:
         infile = io.open(filepath, 'rt')
@@ -117,13 +117,17 @@ def load_csv_file(filepath, db, backend = "stackoverflow"):
     try:
         fields = None
         for event_data in infile:
-            if fields is None:
-                fields = event_data[:-1].split(",")
-                continue
+            if backend != "mail":
+                # In mail CSV we don't have fields in the first row
+                if fields is None:
+                    fields = event_data[:-1].split(",")
+                    continue
             if backend == "stackoverflow":
                 db.stackoverflow_insert_event(event_data, fields)
             elif backend == "github":
                 db.github_insert_event(event_data, fields)
+            elif backend == "mail":
+                db.mail_insert_event(event_data)
         count_events_new += 1
     except Exception as e:
         raise Error("Error parsing %s file: %s" % (filepath, e))
@@ -131,7 +135,7 @@ def load_csv_file(filepath, db, backend = "stackoverflow"):
         infile.close()
     return count_events, count_events_new
 
-def create_events(filepath, backend = "stackoverflow"):
+def create_events(filepath, backend):
     dsquery = DSQuery(opts.dbuser, opts.dbpassword, opts.dbname)
 
     def get_stackoverflow_events():
@@ -152,6 +156,14 @@ def create_events(filepath, backend = "stackoverflow"):
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
 
+    def get_mail_events():
+        table = "mail_events"
+        # Common fields for all events: date, summmary, url
+        q = "SELECT sent_at as date, subject as summary "
+        q += " FROM " + table
+        q += " ORDER BY date DESC "
+        return dsquery.ExecuteQuery(q)
+
     if backend == "stackoverflow":
         res = {"stackoverflow":get_stackoverflow_events()}
         createJSON(res, filepath)
@@ -160,10 +172,15 @@ def create_events(filepath, backend = "stackoverflow"):
         res = {"github":get_github_events()}
         createJSON(res, filepath)
 
+    elif backend == "mail":
+        res = {"mail":get_mail_events()}
+        createJSON(res, filepath)
+
     elif backend is None:
         # Generate all events
         res = {"stackoverflow":get_stackoverflow_events(),
-               "github":get_github_events()}
+               "github":get_github_events(),
+               "mail":get_mail_events()}
         createJSON(res, filepath)
 
 def create_tables (backend):
@@ -171,6 +188,8 @@ def create_tables (backend):
         db.create_tables_stackoverflow()
     elif opts.backend == "github":
         db.create_tables_github()
+    elif opts.backend == "mail":
+        db.create_tables_mail()
     else:
         logging.error(opts.backend + " not supported")
         raise

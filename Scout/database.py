@@ -38,6 +38,8 @@ class Database(object):
                              TableIndex('socreation', 'stackoverflow_events', 'CreationDate'))
     INDEXES_github = (TableIndex('ghrepo', 'github_events', 'repo_name'),
                       TableIndex('ghcreation', 'github_events', 'created_at'))
+    INDEXES_mail = (TableIndex('mailsubject', 'mail_events', 'subject'),
+                    TableIndex('mailcreation', 'mail_events', 'sent_at'))
 
 
     def __init__(self, myuser, mypassword, mydb):
@@ -100,6 +102,22 @@ class Database(object):
         self.drop_indexes("github")
         self.create_indexes("github")
 
+    # Management functions
+    def create_tables_mail(self):
+        # type,repo_name,repo_url,created_at,payload
+        query = "CREATE TABLE IF NOT EXISTS mail_events (" + \
+                "id int(11) NOT NULL AUTO_INCREMENT," + \
+                "message_id varchar(255)," + \
+                "subject varchar(255)," + \
+                "sent_at DATETIME NOT NULL," + \
+                "PRIMARY KEY (id)" + \
+                ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
+        self.cursor.execute(query)
+
+        self.drop_indexes("mail")
+        self.create_indexes("mail")
+
+
     def drop_tables_stackoverflow(self):
         query = "DROP TABLE IF EXISTS stackoverflow_events"
         self.cursor.execute(query)
@@ -108,11 +126,17 @@ class Database(object):
         query = "DROP TABLE IF EXISTS github_events"
         self.cursor.execute(query)
 
+    def drop_tables_mail(self):
+        query = "DROP TABLE IF EXISTS mail_events"
+        self.cursor.execute(query)
+
     def create_indexes(self, backend = "stackoverflow"):
         if backend == "stackoverflow":
             indexes = Database.INDEXES_stackoverflow
         elif backend == "github":
             indexes = Database.INDEXES_github
+        elif backend == "mail":
+            indexes = Database.INDEXES_mail
         else: return
         for idx in indexes:
             try:
@@ -127,6 +151,8 @@ class Database(object):
             indexes = Database.INDEXES_stackoverflow
         elif backend == "github":
             indexes = Database.INDEXES_github
+        elif backend == "mail":
+            indexes = Database.INDEXES_mail
         else: return
 
         for idx in indexes:
@@ -177,6 +203,20 @@ class Database(object):
         query =  "INSERT INTO github_events ("
         for field in fields:
             query += field.replace(" ","_")+","
+        query = query[:-1]
+        query += ") "
+        query += "VALUES ("
+        # Convert to Unicode to support unicode values
+        query = u' '.join((query, event, ")")).encode('utf-8')
+        self.cursor.execute(query)
+        self.conn.commit()
+
+    def mail_insert_event(self, event):
+        # fields not included in CSV file
+        fields = ['message_id','subject','sent_at']
+        query =  "INSERT INTO mail_events ("
+        for field in fields:
+            query += field+","
         query = query[:-1]
         query += ") "
         query += "VALUES ("
