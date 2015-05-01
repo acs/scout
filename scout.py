@@ -143,7 +143,7 @@ def create_events(filepath, backend):
         url_posts = "http://stackoverflow.com/questions/"
         # Common fields for all events: date, summmary, url
         q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary, "
-        q += " ViewCount as views, Score as score "
+        q += " ViewCount as views, Score as score, PostTypeId as type "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
@@ -151,7 +151,7 @@ def create_events(filepath, backend):
     def get_github_events():
         table = "github_events"
         # Common fields for all events: date, summmary, url
-        q = "SELECT repo_url as url, created_at as date, repo_name as summary "
+        q = "SELECT repo_url as url, created_at as date, repo_name as summary, type "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
