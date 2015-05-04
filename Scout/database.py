@@ -98,6 +98,7 @@ class Database(object):
                 "created_at DATETIME NOT NULL," + \
                 "actor_url VARCHAR(255) NULL," + \
                 "body TEXT NULL," + \
+                "status VARCHAR(32) NULL," + \
                 "PRIMARY KEY (id)" + \
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
         self.cursor.execute(query)
@@ -188,6 +189,8 @@ class Database(object):
     def github_insert_event(self, event, fields):
         from datetime import datetime
         # type,repo_name,repo_url,created_at,actor_url,payload
+        status = None # for pull requests, issues ...
+        body = '' # body data for the event
         event_data = event[:-1].split(",",5)
         timestamp =  int(float(event_data[3]))
         # url  https://api.github.com/repos/mahiso/ArduinoCentOS7
@@ -201,12 +204,23 @@ class Database(object):
         all_types = ["PushEvent","CreateEvent","IssuesEvent","WatchEvent","ForkEvent","DeleteEvent",\
                      "PullRequestEvent","IssueCommentEvent","GollumEvent", \
                      "CommitCommentEvent", "ReleaseEvent", "MemberEvent"]
-        types_on = ["CreateEvent"]
-        if not (event_data[0] in types_on and payload['ref_type'] == "repository"):
+        types_on = ["CreateEvent","PullRequestEvent"]
+        if event_data[0] not in types_on:
+            # Don't register not active events
+            return
+        if event_data[0] == "CreateEvent" and payload['ref_type'] != "repository":
             # Store just create repository events
             return
         event_data[5] = event_data[5].replace("'","\\'")
-        body = payload['description']
+        if event_data[0] == "CreateEvent":
+            body = payload['description']
+        elif event_data[0] == "PullRequestEvent":
+            status = payload['pull_request']['state']
+            if payload['pull_request']['title'] is not None:
+                body += payload['pull_request']['title']+"\n"
+            if payload['pull_request']['body'] is not None:
+                body += payload['pull_request']['body']
+            event_data[2] = payload['pull_request']['html_url']
         event = "','".join(event_data)
         event = "'"+event+"'"
         query =  "INSERT INTO github_events ("
@@ -218,6 +232,9 @@ class Database(object):
             query += ", body"
             body = body.replace("'","\\'")
             event += ",'"+body+"'"
+        if status is not None:
+            query += ", status"
+            event += ",'"+status+"'"
         query += ") "
         query += "VALUES ("
         # Convert to Unicode to support unicode values

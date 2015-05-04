@@ -155,6 +155,8 @@ def load_csv_file(filepath, db, backend):
                 db.github_insert_event(event_data, fields)
 
     except Exception as e:
+        import traceback
+        print traceback.format_exc()
         raise Error("Error parsing %s file: %s" % (filepath, e))
     finally:
         infile.close()
@@ -176,7 +178,7 @@ def create_events(filepath, backend):
     def get_github_events():
         table = "github_events"
         # Common fields for all events: date, summmary, url
-        q = "SELECT repo_url as url, created_at as date, repo_name as summary, type, body "
+        q = "SELECT repo_url as url, created_at as date, repo_name as summary, type, body, status "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
