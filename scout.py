@@ -25,7 +25,6 @@
 #   Santiago Dueñas <sduenas@bitergia.com>
 #
 
-import io
 import logging
 import sys
 
@@ -103,10 +102,11 @@ def string_to_datetime(s, schema):
 
 def load_csv_file(filepath, db, backend):
     """Load a CSV events file in MySQL."""
+    import csv
     if backend not in ("stackoverflow","github","mail"):
         raise ("Backend not supported: " + backend)
     try:
-        infile = io.open(filepath, 'rt')
+        infile = open(filepath, 'rt')
     except EnvironmentError as e:
         raise Error("Cannot open %s for reading: %s" % (filepath, e))
 
@@ -114,21 +114,42 @@ def load_csv_file(filepath, db, backend):
     count_events_new = 0
     # last_date = db.get_last_date(channel_id)
 
+    if backend == "github":
+        # Don't use CSV module for this format. Not easy to parse with it.
+        pass
+    elif backend == "mail":
+        data = csv.reader(infile, delimiter=',',quotechar='"', escapechar='\\')
+    else:
+        data = csv.reader(infile, delimiter=',',quotechar='"')
+
     try:
         fields = None
-        for event_data in infile:
-            if backend != "mail":
-                # In mail CSV we don't have fields in the first row
+        if backend in ["mail","stackoverflow"]:
+            for event_data in data:
+                if backend != "mail":
+                    # In mail CSV we don't have fields in the first row
+                    if fields is None:
+                        # first row are the fields names
+                        fields = event_data
+                        continue
+                # TODO: Loosing " inside the body. To be fixed. Quick hack.
+                event_data = [fevent.replace('"','') for fevent in event_data]
+                event_data_str = '"'+ '","'.join(event_data)+'"'
+                if backend == "stackoverflow":
+                    db.stackoverflow_insert_event(event_data_str, fields)
+                elif backend == "github":
+                    db.github_insert_event(event_data, fields)
+                elif backend == "mail":
+                    db.mail_insert_event(event_data_str)
+            count_events_new += 1
+        elif backend in ["github"]:
+            for event_data in infile:
                 if fields is None:
+                    # first row are the fields names
                     fields = event_data[:-1].split(",")
                     continue
-            if backend == "stackoverflow":
-                db.stackoverflow_insert_event(event_data, fields)
-            elif backend == "github":
                 db.github_insert_event(event_data, fields)
-            elif backend == "mail":
-                db.mail_insert_event(event_data)
-        count_events_new += 1
+
     except Exception as e:
         raise Error("Error parsing %s file: %s" % (filepath, e))
     finally:

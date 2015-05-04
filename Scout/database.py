@@ -77,6 +77,7 @@ class Database(object):
                 "ViewCount int(11)," + \
                 "Score int(11)," + \
                 "User_Link VARCHAR(255) NULL," + \
+                "body TEXT," + \
                 "PRIMARY KEY (id)" + \
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
         self.cursor.execute(query)
@@ -95,6 +96,7 @@ class Database(object):
                 "repo_url VARCHAR(255) NULL," + \
                 "payload TEXT NULL," + \
                 "created_at DATETIME NOT NULL," + \
+                "actor_url VARCHAR(255) NULL," + \
                 "PRIMARY KEY (id)" + \
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
         self.cursor.execute(query)
@@ -111,6 +113,9 @@ class Database(object):
                 "subject varchar(255)," + \
                 "sent_at DATETIME NOT NULL," + \
                 "url varchar(255)," + \
+                "mailing_list varchar(255)," + \
+                "author varchar(255)," + \
+                "body TEXT," + \
                 "PRIMARY KEY (id)" + \
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
         self.cursor.execute(query)
@@ -174,21 +179,23 @@ class Database(object):
         query += ") "
         query += "VALUES ("
         # Convert to Unicode to support unicode values
-        query = u' '.join((query, event, ")")).encode('utf-8')
+        # query = u' '.join((query, event, ")")).encode('utf-8')
+        query = query + event +")"
         self.cursor.execute(query)
         self.conn.commit()
 
     def github_insert_event(self, event, fields):
         from datetime import datetime
-        #  type,repo_name,repo_url,created_at,payload
-        event_data = event[:-1].split(",",4)
+        # type,repo_name,repo_url,created_at,actor_url,payload
+        # type,repo_name,repo_url,created_at,payload
+        event_data = event[:-1].split(",",5)
         timestamp =  int(float(event_data[3]))
         # url  https://api.github.com/repos/mahiso/ArduinoCentOS7
         # should be changed to https://github.com/mahiso/ArduinoCentOS7
         event_data[2] = event_data[2].replace("api.","").replace("repos/","")
         event_data[3] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
         # Work with payload
-        payload = event_data[4][:-1][1:]
+        payload = event_data[5][:-1][1:]
         payload = payload.replace('""','"')
         payload = json.loads(payload)
         all_types = ["PushEvent","CreateEvent","IssuesEvent","WatchEvent","ForkEvent","DeleteEvent",\
@@ -198,7 +205,7 @@ class Database(object):
         if not (event_data[0] in types_on and payload['ref_type'] == "repository"):
             # Store just create repository events
             return
-        event_data[4] = event_data[4].replace("'","\\'")
+        event_data[5] = event_data[5].replace("'","\\'")
         event = "','".join(event_data)
         event = "'"+event+"'"
         query =  "INSERT INTO github_events ("
@@ -208,18 +215,19 @@ class Database(object):
         query += ") "
         query += "VALUES ("
         # Convert to Unicode to support unicode values
-        query = u' '.join((query, event, ")")).encode('utf-8')
+        # query = u' '.join((query, event, ")")).encode('utf-8')
+        query += event + ")"
         self.cursor.execute(query)
         self.conn.commit()
 
     def mail_insert_event(self, event):
         # fields not included in CSV file
-        fields = ['message_id','subject','sent_at']
-        # Add now url not included in CSV file
+        fields = ['message_id','subject','sent_at','author','mailing_list','body']
+        # Add now url. In CSV file we have the URL for the mailing lists, not useful.
         fields = ['url'] + fields
         # url not included in the event
         from urllib import quote
-        subject = event.split(",")[1]
+        subject = event[1]
         url = "https://www.google.com/search?q="+quote(subject)
         event = '"'+url+'"'+','+event
         query =  "INSERT INTO mail_events ("
@@ -229,6 +237,9 @@ class Database(object):
         query += ") "
         query += "VALUES ("
         # Convert to Unicode to support unicode values
-        query = u' '.join((query, event, ")")).encode('utf-8')
+        # query = u' '.join((query, event, ")")).encode('utf-8')
+        if event[-2:] == '\\"': event = event.replace('\\"','\\ "')
+        query = query + event +")"
+
         self.cursor.execute(query)
         self.conn.commit()
