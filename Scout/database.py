@@ -97,6 +97,7 @@ class Database(object):
                 "payload TEXT NULL," + \
                 "created_at DATETIME NOT NULL," + \
                 "actor_url VARCHAR(255) NULL," + \
+                "body TEXT NULL," + \
                 "PRIMARY KEY (id)" + \
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
         self.cursor.execute(query)
@@ -187,7 +188,6 @@ class Database(object):
     def github_insert_event(self, event, fields):
         from datetime import datetime
         # type,repo_name,repo_url,created_at,actor_url,payload
-        # type,repo_name,repo_url,created_at,payload
         event_data = event[:-1].split(",",5)
         timestamp =  int(float(event_data[3]))
         # url  https://api.github.com/repos/mahiso/ArduinoCentOS7
@@ -206,17 +206,22 @@ class Database(object):
             # Store just create repository events
             return
         event_data[5] = event_data[5].replace("'","\\'")
+        body = payload['description']
         event = "','".join(event_data)
         event = "'"+event+"'"
         query =  "INSERT INTO github_events ("
         for field in fields:
             query += field.replace(" ","_")+","
-        query = query[:-1]
+        query = query[:-1] # remove last ,
+        # Add body depending in the type of event
+        if body is not None:
+            query += ", body"
+            body = body.replace("'","\\'")
+            event += ",'"+body+"'"
         query += ") "
         query += "VALUES ("
         # Convert to Unicode to support unicode values
-        # query = u' '.join((query, event, ")")).encode('utf-8')
-        query += event + ")"
+        query = u' '.join((query, event, ")")).encode('utf-8')
         self.cursor.execute(query)
         self.conn.commit()
 

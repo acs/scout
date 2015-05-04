@@ -25,6 +25,7 @@
 #   Santiago Dueñas <sduenas@bitergia.com>
 #
 
+import io
 import logging
 import sys
 
@@ -106,7 +107,10 @@ def load_csv_file(filepath, db, backend):
     if backend not in ("stackoverflow","github","mail"):
         raise ("Backend not supported: " + backend)
     try:
-        infile = open(filepath, 'rt')
+        if backend in ["mail","stackoverflow"]:
+            infile = open(filepath, 'rt')
+        elif backend in ["github"]:
+            infile = io.open(filepath, 'rt')
     except EnvironmentError as e:
         raise Error("Cannot open %s for reading: %s" % (filepath, e))
 
@@ -164,7 +168,7 @@ def create_events(filepath, backend):
         url_posts = "http://stackoverflow.com/questions/"
         # Common fields for all events: date, summmary, url
         q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary, "
-        q += " ViewCount as views, Score as score, PostTypeId as type "
+        q += " ViewCount as views, Score as score, PostTypeId as type, body "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
@@ -172,7 +176,7 @@ def create_events(filepath, backend):
     def get_github_events():
         table = "github_events"
         # Common fields for all events: date, summmary, url
-        q = "SELECT repo_url as url, created_at as date, repo_name as summary, type "
+        q = "SELECT repo_url as url, created_at as date, repo_name as summary, type, body "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
@@ -180,7 +184,7 @@ def create_events(filepath, backend):
     def get_mail_events():
         table = "mail_events"
         # Common fields for all events: date, summmary, url
-        q = "SELECT url, sent_at as date, subject as summary "
+        q = "SELECT url, sent_at as date, subject as summary, body "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
