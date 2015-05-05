@@ -248,8 +248,9 @@ class Database(object):
         # Add now url. In CSV file we have the URL for the mailing lists, not useful.
         fields = ['url'] + fields
         # url not included in the event
+        event_data = event.split(",",5)
         from urllib import quote
-        subject = event[1]
+        subject = event_data[1]
         url = "https://www.google.com/search?q="+quote(subject)
         event = '"'+url+'"'+','+event
         query =  "INSERT INTO mail_events ("
