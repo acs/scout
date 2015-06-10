@@ -31,7 +31,7 @@ mail: MailmanOpenStackCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
 .PHONY: events
-events:
+events: github stackoverflow mail
 	$(SCOUT) -j events.json  -u root -d scout
 
 all: $(BACKENDS) events
