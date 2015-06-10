@@ -32,7 +32,7 @@ mail: MailmanOpenStackCentOS-P1.csv
 
 .PHONY: events
 events: github stackoverflow mail
-	$(SCOUT) -j events.json  -u root -d scout
+	$(SCOUT) -j scout.json  -u root -d scout
 
 all: $(BACKENDS) events
 
