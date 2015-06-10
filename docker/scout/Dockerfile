@@ -58,6 +58,6 @@ RUN cd VizGrimoireJS && make && \
 
 # Generate events and deploy them
 RUN cd scout && make events && \
-    cp scout.json VizGrimoireJS/browser/data/json/
+    cp scout.json ../VizGrimoireJS/browser/data/json/
 
 USER root
