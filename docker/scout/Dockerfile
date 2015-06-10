@@ -45,7 +45,6 @@ ADD configure-mysql.sh ${SCRIPTS_DIR}/configure-mysql.sh
 # preseed debconf to set the mysql root password
 RUN ${SCRIPTS_DIR}/configure-mysql.sh
 RUN apt-get update && apt-get install -qy mysql-server
-RUN service mysql start
 
 USER ${DEPLOY_USER}
 # Build web interface
@@ -57,7 +56,9 @@ RUN cd VizGrimoireJS && make && \
     cp scout/html/browser/lib/events.js VizGrimoireJS/browser/lib
 
 # Generate events and deploy them
-RUN cd scout && make events && \
+RUN sudo service mysql start && \
+    cd scout && make events && \
     cp scout.json ../VizGrimoireJS/browser/data/json/
 
 USER root
+RUN ln -s ${DEPLOY_USER_DIR}/VizGrimoireJS/browser /var/www/html/scout
