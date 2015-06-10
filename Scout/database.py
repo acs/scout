@@ -26,7 +26,7 @@
 
 import logging, MySQLdb
 from collections import namedtuple
-import json, sys
+import json
 
 # Tuple for managing table indexes
 TableIndex = namedtuple('TableIndex', 'name table field')
