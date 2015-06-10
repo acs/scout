@@ -26,7 +26,7 @@
 
 import logging, MySQLdb
 from collections import namedtuple
-import json
+import json, sys
 
 # Tuple for managing table indexes
 TableIndex = namedtuple('TableIndex', 'name table field')
@@ -48,14 +48,30 @@ class Database(object):
         self.mydb = mydb
         self.conn = None
 
-    def open_database(self):
+    def create_db(self, name):
         conn = MySQLdb.Connect(host="127.0.0.1",
                                port=3306,
-                               user=self.myuser,
-                               passwd=self.mypassword,
-                               db=self.mydb)
-        self.conn = conn
-        self.cursor = self.conn.cursor()
+                               user =self.myuser,
+                               passwd=self.mypassword)
+        cursor = conn.cursor()
+        query = "CREATE DATABASE " + name + " CHARACTER SET utf8"
+        cursor.execute(query)
+        conn.close()
+        logging.info (name+" created")
+
+    def open_database(self):
+        try:
+            conn = MySQLdb.Connect(host="127.0.0.1",
+                                   port=3306,
+                                   user =self.myuser,
+                                   passwd=self.mypassword,
+                                   db=self.mydb)
+            self.conn = conn
+            self.cursor = self.conn.cursor()
+        except:
+            logging.error(self.mydb + " does not exists")
+            self.create_db(self.mydb)
+            self.open_database()
 
     def close_database(self):
         self.conn.close()
