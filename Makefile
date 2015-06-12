@@ -33,7 +33,7 @@ mail: MailmanOpenStackCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
 .PHONY: events
-events: github stackoverflow mail
+events: cleandb github stackoverflow mail
 	$(SCOUT) -j scout.json  -u root -d scout
 
 scout.json: events
@@ -41,6 +41,7 @@ scout.json: events
 deploy: scout.json
 	cp $^ $(DEPLOY)/data/json
 	cp -a html/browser/* $(DEPLOY)
+	cp -a html/browser/scout.html $(DEPLOY)/index.html
 
 pep8:
 	pep8 --exclude=VizGrimoireJS .
