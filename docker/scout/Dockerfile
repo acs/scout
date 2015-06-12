@@ -61,4 +61,5 @@ RUN sudo service mysql start && \
     cp scout.json ../VizGrimoireJS/browser/data/json/
 
 USER root
-RUN ln -s ${DEPLOY_USER_DIR}/VizGrimoireJS/browser /var/www/html/scout
+RUN mv /var/www/html /var/www/html.orig
+RUN ln -s ${DEPLOY_USER_DIR}/VizGrimoireJS/browser /var/www/html

@@ -1,4 +1,4 @@
 scout:
     image: bitergia/scout
     volumes:
-        - /code
+        - ~/devel/scout:/home/bitergia/scout
