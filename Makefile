@@ -10,6 +10,7 @@ help:
 	$(info - stackoverflow: 	Load data for stackoverflow)
 	$(info - mail:			Load data for mail archives)
 	$(info - events:		Generate events JSON file)
+	$(info - deploy:		Deploy JSON file to be shown in the web)
 	$(info )
 	@echo ""
 
@@ -17,6 +18,7 @@ SCOUT=./scout.py
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail
+DEPLOY=VizGrimoireJS/browser/data/json
 
 %.csv: %.csv.gz
 	gunzip -c $^  > $@
@@ -34,7 +36,12 @@ mail: MailmanOpenStackCentOS-P1.csv
 events: github stackoverflow mail
 	$(SCOUT) -j scout.json  -u root -d scout
 
-all: $(BACKENDS) events
+scout.json: events
+
+deploy: scout.json
+	cp $^ $(DEPLOY)
+
+all: $(BACKENDS) events deploy
 
 cleandb:
 	echo "drop database $(DBNAME)" | mysql -u $(DBUSER)
