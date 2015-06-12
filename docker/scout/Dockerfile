@@ -19,26 +19,13 @@ RUN apt-get update && \
         git git-core \
         tree ccze \
         psmisc \
-        python \
+        python pep8 \
         apache2 \
         python-mysqldb\
         make \
         && \
     apt-get clean && \
     find /var/lib/apt/lists -type f -delete
-
-USER ${DEPLOY_USER}
-WORKDIR ${DEPLOY_USER_DIR}
-
-# get repository
-RUN git clone https://github.com/acs/scout scout
-RUN cd scout && git clone https://github.com/VizGrimoire/GrimoireLib.git && ln -s GrimoireLib/vizgrimoire
-USER root
-# Just for GrimoireLib
-RUN apt-get update && apt-get -y install --no-install-recommends \
-        python-dateutil python-rpy2
-RUN apt-get -y install --no-install-recommends \
-        python-scipy
 
 # MySQL install and config and db creation
 ADD configure-mysql.sh ${SCRIPTS_DIR}/configure-mysql.sh
@@ -47,18 +34,23 @@ RUN ${SCRIPTS_DIR}/configure-mysql.sh
 RUN apt-get update && apt-get install -qy mysql-server
 
 USER ${DEPLOY_USER}
+WORKDIR ${DEPLOY_USER_DIR}
+
 # Build web interface
 RUN git clone https://github.com/VizGrimoire/VizGrimoireJS.git
 RUN cd VizGrimoireJS && make && \
     cd .. && sudo ln -s ${DEPLOY_USER_DIR}/VizGrimoireJS events && \
-    mkdir -p VizGrimoireJS/browser/data/json && \
-    cp scout/html/browser/scout.html VizGrimoireJS/browser/index.html && \
-    cp scout/html/browser/lib/events.js VizGrimoireJS/browser/lib
+    mkdir -p VizGrimoireJS/browser/data/json
+
+# get Scout repository
+RUN git clone https://github.com/acs/scout scout
 
 # Generate events and deploy them
 RUN sudo service mysql start && \
     cd scout && make events && \
-    cp scout.json ../VizGrimoireJS/browser/data/json/
+    cp scout.json ../VizGrimoireJS/browser/data/json/ && \
+    cp html/browser/scout.html ../VizGrimoireJS/browser/index.html && \
+    cp html/browser/lib/events.js ../VizGrimoireJS/browser/lib
 
 USER root
 RUN mv /var/www/html /var/www/html.orig
