@@ -25,17 +25,14 @@
 #   Santiago Dueñas <sduenas@bitergia.com>
 #
 
-import io
 import logging
 import sys
 
 from datetime import datetime
 from optparse import OptionParser
 
-from vizgrimoire.metrics.query_builder import DSQuery
-from vizgrimoire.GrimoireUtils import createJSON
-
 from Scout.database import Database
+from Scout.utils import DSQuery, createJSON
 
 class Error(Exception):
     """Application error."""
@@ -107,10 +104,13 @@ def load_csv_file(filepath, db, backend):
     if backend not in ("stackoverflow","github","mail"):
         raise ("Backend not supported: " + backend)
     try:
+        # mail csv file is ASCII. The rest is UTF8
         if backend in ["mail","stackoverflow"]:
             infile = open(filepath, 'rt')
         elif backend in ["github"]:
-            infile = io.open(filepath, 'rt')
+            import codecs
+            infile = codecs.open(filepath, "rt", "utf-8")
+
     except EnvironmentError as e:
         raise Error("Cannot open %s for reading: %s" % (filepath, e))
 
@@ -147,7 +147,8 @@ def load_csv_file(filepath, db, backend):
                     db.mail_insert_event(event_data_str)
             count_events_new += 1
         elif backend in ["github"]:
-            for event_data in infile:
+            lines = infile.readlines()
+            for event_data in lines:
                 if fields is None:
                     # first row are the fields names
                     fields = event_data[:-1].split(",")

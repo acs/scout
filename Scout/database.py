@@ -247,6 +247,10 @@ class Database(object):
         if body is not None:
             query += ", body"
             body = body.replace("'","\\'")
+            # Convert to Unicode to support unicode values
+            event = unicode(event)
+            # body = unicode(body)
+            # event = u' '.join((event, ",'", body,"'")).encode('utf-8')
             event += ",'"+body+"'"
         if status is not None:
             query += ", status"
