@@ -21,10 +21,11 @@
 # Authors:
 #   Alvaro del Castillo San Felix <acs@bitergia.com>
 #   Santiago Dueñas <sduenas@bitergia.com>
-#   
+#
 #
 
-import logging, MySQLdb
+import logging
+import MySQLdb
 from collections import namedtuple
 import json
 
@@ -34,13 +35,14 @@ TableIndex = namedtuple('TableIndex', 'name table field')
 
 class Database(object):
 
-    INDEXES_stackoverflow = (TableIndex('sotitle', 'stackoverflow_events', 'title'),
-                             TableIndex('socreation', 'stackoverflow_events', 'CreationDate'))
+    INDEXES_stackoverflow = (TableIndex('sotitle', 'stackoverflow_events',
+                                        'title'),
+                             TableIndex('socreation', 'stackoverflow_events',
+                                        'CreationDate'))
     INDEXES_github = (TableIndex('ghrepo', 'github_events', 'repo_name'),
                       TableIndex('ghcreation', 'github_events', 'created_at'))
     INDEXES_mail = (TableIndex('mailsubject', 'mail_events', 'subject'),
                     TableIndex('mailcreation', 'mail_events', 'sent_at'))
-
 
     def __init__(self, myuser, mypassword, mydb):
         self.myuser = myuser
@@ -51,19 +53,19 @@ class Database(object):
     def create_db(self, name):
         conn = MySQLdb.Connect(host="127.0.0.1",
                                port=3306,
-                               user =self.myuser,
+                               user=self.myuser,
                                passwd=self.mypassword)
         cursor = conn.cursor()
         query = "CREATE DATABASE " + name + " CHARACTER SET utf8"
         cursor.execute(query)
         conn.close()
-        logging.info (name+" created")
+        logging.info(name+" created")
 
     def open_database(self):
         try:
             conn = MySQLdb.Connect(host="127.0.0.1",
                                    port=3306,
-                                   user =self.myuser,
+                                   user=self.myuser,
                                    passwd=self.mypassword,
                                    db=self.mydb)
             self.conn = conn
@@ -141,7 +143,6 @@ class Database(object):
         self.drop_indexes("mail")
         self.create_indexes("mail")
 
-
     def drop_tables_stackoverflow(self):
         query = "DROP TABLE IF EXISTS stackoverflow_events"
         self.cursor.execute(query)
@@ -154,30 +155,33 @@ class Database(object):
         query = "DROP TABLE IF EXISTS mail_events"
         self.cursor.execute(query)
 
-    def create_indexes(self, backend = "stackoverflow"):
+    def create_indexes(self, backend="stackoverflow"):
         if backend == "stackoverflow":
             indexes = Database.INDEXES_stackoverflow
         elif backend == "github":
             indexes = Database.INDEXES_github
         elif backend == "mail":
             indexes = Database.INDEXES_mail
-        else: return
+        else:
+            return
         for idx in indexes:
             try:
-                query = "CREATE INDEX %s ON %s (%s);" % (idx.name, idx.table, idx.field)
+                query = "CREATE INDEX %s ON %s (%s);" % (idx.name,
+                                                         idx.table, idx.field)
                 self.cursor.execute(query)
                 self.conn.commit()
             except MySQLdb.Error as e:
                 print("Warning: Creating %s index" % idx.name, e)
 
-    def drop_indexes(self, backend = "stackoverflow"):
+    def drop_indexes(self, backend="stackoverflow"):
         if backend == "stackoverflow":
             indexes = Database.INDEXES_stackoverflow
         elif backend == "github":
             indexes = Database.INDEXES_github
         elif backend == "mail":
             indexes = Database.INDEXES_mail
-        else: return
+        else:
+            return
 
         for idx in indexes:
             try:
@@ -187,71 +191,72 @@ class Database(object):
             except MySQLdb.Error as e:
                 print("Warning: Dropping %s index" % idx.name, e)
 
-    # Queries (SELECT/INSERT) functions 
-
     def stackoverflow_insert_event(self, event, fields):
-        query =  "INSERT INTO stackoverflow_events ("
+        query = "INSERT INTO stackoverflow_events ("
         for field in fields:
-            query += field.replace(" ","_")+","
+            query += field.replace(" ", "_") + ","
         query = query[:-1]
         query += ") "
         query += "VALUES ("
         # Convert to Unicode to support unicode values
         # query = u' '.join((query, event, ")")).encode('utf-8')
-        query = query + event +")"
+        query = query + event + ")"
         self.cursor.execute(query)
         self.conn.commit()
 
     def github_insert_event(self, event, fields):
         from datetime import datetime
         # type,repo_name,repo_url,created_at,actor_url,payload
-        status = None # for pull requests, issues ...
-        body = '' # body data for the event
-        event_data = event[:-1].split(",",5)
-        timestamp =  int(float(event_data[3]))
+        status = None  # for pull requests, issues ...
+        body = ''  # body data for the event
+        event_data = event[:-1].split(",", 5)
+        timestamp = int(float(event_data[3]))
         # url  https://api.github.com/repos/mahiso/ArduinoCentOS7
         # should be changed to https://github.com/mahiso/ArduinoCentOS7
-        event_data[2] = event_data[2].replace("api.","").replace("repos/","")
-        event_data[3] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        event_data[2] = event_data[2].replace("api.", "").replace("repos/", "")
+        event_data[3] = \
+            datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
         # Work with payload
         payload = event_data[5][:-1][1:]
-        payload = payload.replace('""','"')
+        payload = payload.replace('""', '"')
         payload = json.loads(payload)
-        all_types = ["PushEvent","CreateEvent","IssuesEvent","WatchEvent","ForkEvent","DeleteEvent",\
-                     "PullRequestEvent","IssueCommentEvent","GollumEvent", \
+        all_types = ["PushEvent", "CreateEvent", "IssuesEvent", "WatchEvent",
+                     "ForkEvent", "DeleteEvent",
+                     "PullRequestEvent", "IssueCommentEvent", "GollumEvent",
                      "CommitCommentEvent", "ReleaseEvent", "MemberEvent"]
-        types_on = ["CreateEvent","PullRequestEvent"]
+        types_on = ["CreateEvent", "PullRequestEvent"]
         if event_data[0] not in types_on:
             # Don't register not active events
             return
-        if event_data[0] == "CreateEvent" and payload['ref_type'] != "repository":
+        if event_data[0] == "CreateEvent" and \
+                payload['ref_type'] != "repository":
             # Store just create repository events
             return
-        event_data[5] = event_data[5].replace("'","\\'")
+        event_data[5] = event_data[5].replace("'", "\\'")
         if event_data[0] == "CreateEvent":
             body = payload['description']
         elif event_data[0] == "PullRequestEvent":
             status = payload['pull_request']['state']
             if payload['pull_request']['title'] is not None:
-                body += payload['pull_request']['title']+"\n"
+                body += payload['pull_request']['title'] + "\n"
             if payload['pull_request']['body'] is not None:
                 body += payload['pull_request']['body']
             event_data[2] = payload['pull_request']['html_url']
         event = "','".join(event_data)
-        event = "'"+event+"'"
-        query =  "INSERT INTO github_events ("
+        event = "'" + event + "'"
+        query = "INSERT INTO github_events ("
         for field in fields:
-            query += field.replace(" ","_")+","
-        query = query[:-1] # remove last ,
+            query += field.replace(" ", "_") + ","
+        query = query[:-1]  # remove last ,
         # Add body depending in the type of event
         if body is not None:
             query += ", body"
-            body = body.replace("'","\\'")
+            body = body.replace("'", "\\'")
             # Convert to Unicode to support unicode values
             event = unicode(event)
             # body = unicode(body)
             # event = u' '.join((event, ",'", body,"'")).encode('utf-8')
-            event += ",'"+body+"'"
+            event += ",'" + body + "'"
         if status is not None:
             query += ", status"
             event += ",'"+status+"'"
@@ -264,25 +269,27 @@ class Database(object):
 
     def mail_insert_event(self, event):
         # fields not included in CSV file
-        fields = ['message_id','subject','sent_at','author','mailing_list','body']
-        # Add now url. In CSV file we have the URL for the mailing lists, not useful.
+        fields = ['message_id', 'subject', 'sent_at', 'author',
+                  'mailing_list', 'body']
+        # Add now url. In CSV file we have the URL for the mailing lists.
         fields = ['url'] + fields
         # url not included in the event
-        event_data = event.split(",",5)
+        event_data = event.split(",", 5)
         from urllib import quote
         subject = event_data[1]
         url = "https://www.google.com/search?q="+quote(subject)
         event = '"'+url+'"'+','+event
-        query =  "INSERT INTO mail_events ("
+        query = "INSERT INTO mail_events ("
         for field in fields:
-            query += field+","
+            query += field + ","
         query = query[:-1]
         query += ") "
         query += "VALUES ("
         # Convert to Unicode to support unicode values
         # query = u' '.join((query, event, ")")).encode('utf-8')
-        if event[-2:] == '\\"': event = event.replace('\\"','\\ "')
-        query = query + event +")"
+        if event[-2:] == '\\"':
+            event = event.replace('\\"', '\\ "')
+        query = query + event + ")"
 
         self.cursor.execute(query)
         self.conn.commit()

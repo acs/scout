@@ -20,20 +20,22 @@
 #
 # Authors:
 #   Alvaro del Castillo San Felix <acs@bitergia.com>
-#   
+#
 #
 
 from datetime import datetime
-import json, MySQLdb
+import json
+import MySQLdb
+
 
 # Simplified from vizgrimoire.metrics.DSQuery in GrimoireLib
 class DSQuery(object):
     """ Generic methods to control access to db """
 
-    db_conn_pool = {} # one connection per database
+    db_conn_pool = {}  # one connection per database
 
     def __init__(self, user, password, database,
-                 identities_db = None, projects_db = None,
+                 identities_db=None, projects_db=None,
                  host="127.0.0.1", port=3306, group=None):
         self.user = user
         self.password = password
@@ -44,7 +46,8 @@ class DSQuery(object):
         if database in DSQuery.db_conn_pool:
             db = DSQuery.db_conn_pool[database]
         else:
-            db = self.__SetDBChannel__(user, password, database, host, port, group)
+            db = self.__SetDBChannel__(user, password, database, host,
+                                       port, group)
             DSQuery.db_conn_pool[database] = db
         self.cursor = db.cursor()
         self.cursor.execute("SET NAMES 'utf8'")
@@ -56,9 +59,11 @@ class DSQuery(object):
     def create_indexes(self):
         """ Basic indexes used in each data source """
         pass
-    def __SetDBChannel__ (self, user=None, password=None, database=None,
-                      host="127.0.0.1", port=3306, group=None):
-        if (group == None):
+
+    def __SetDBChannel__(self, user=None, password=None, database=None,
+                         host="127.0.0.1", port=3306, group=None):
+
+        if group is None:
             db = MySQLdb.connect(user=user, passwd=password,
                                  db=database, host=host, port=port)
         else:
@@ -66,25 +71,27 @@ class DSQuery(object):
 
         return db
 
-    def ExecuteQuery (self, sql):
-        if sql is None: return {}
+    def ExecuteQuery(self, sql):
+        if sql is None:
+            return {}
         # print sql
         result = {}
         self.cursor.execute(sql)
         rows = self.cursor.rowcount
         columns = self.cursor.description
 
-        if columns is None: return result
+        if columns is None:
+            return result
 
         for column in columns:
             result[column[0]] = []
         if rows > 1:
             for value in self.cursor.fetchall():
-                for (index,column) in enumerate(value):
+                for (index, column) in enumerate(value):
                     result[columns[index][0]].append(column)
         elif rows == 1:
             value = self.cursor.fetchone()
-            for i in range (0, len(columns)):
+            for i in range(0, len(columns)):
                 result[columns[i][0]] = value[i]
         return result
 
@@ -100,7 +107,7 @@ def convertDatetime(data):
             elif (isinstance(data[key], dict)):
                 data[key] = convertDatetime(data[key])
     if (isinstance(data, list)):
-        for i in range(0,len(data)):
+        for i in range(0, len(data)):
             if (isinstance(data[i], datetime)):
                 data[i] = str(data[i])
     return data
@@ -110,7 +117,7 @@ def convertDatetime(data):
 def createJSON(data, filepath):
     checked_data = convertDatetime(data)
     json_data = json.dumps(checked_data, sort_keys=True)
-    json_data = json_data.replace('NA','"NA"').replace('NaN','"NA"').replace('null',' "NA" ')
+    json_data = json_data.replace('NaN', '"NA"')
     jsonfile = open(filepath, 'w')
     jsonfile.write(json_data)
     jsonfile.close()

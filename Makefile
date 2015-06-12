@@ -18,7 +18,7 @@ SCOUT=./scout.py
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail
-DEPLOY=VizGrimoireJS/browser/data/json
+DEPLOY=../VizGrimoireJS/browser
 
 %.csv: %.csv.gz
 	gunzip -c $^  > $@
@@ -39,9 +39,13 @@ events: github stackoverflow mail
 scout.json: events
 
 deploy: scout.json
-	cp $^ $(DEPLOY)
+	cp $^ $(DEPLOY)/data/json
+	cp -a html/browser/* $(DEPLOY)
 
-all: $(BACKENDS) events deploy
+pep8:
+	pep8 --exclude=VizGrimoireJS .
+
+all: pep8 cleandb $(BACKENDS) events deploy
 
 cleandb:
 	echo "drop database $(DBNAME)" | mysql -u $(DBUSER)

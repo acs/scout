@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# 
+#
 # Copyright (C) 2015 Bitergia
 #
 # This program is free software; you can redistribute it and/or modify
@@ -24,12 +24,12 @@
 
 from distutils.core import setup
 
-setup(name = "Scout tool",
-      version = "0.1",
-      author =  "Bitergia",
-      author_email = "acs@bitergia.com",
-      description = "Scouting tool for gathering events",
-      url = "https://github.com/MetricsGrimoire/scout",
-      packages = ["Scout"],
-      data_files = [],
-      scripts = ["scout.py"])
+setup(name="Scout tool",
+      version="0.1",
+      author="Bitergia",
+      author_email="acs@bitergia.com",
+      description="Scouting tool for gathering events",
+      url="https://github.com/MetricsGrimoire/scout",
+      packages=["Scout"],
+      data_files=[],
+      scripts=["scout.py"])

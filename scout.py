@@ -3,7 +3,7 @@
 #
 # This script parses IRC logs and stores the extracted data in
 # a database
-# 
+#
 # Copyright (C) 2012-2013 Bitergia
 #
 # This program is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@ from optparse import OptionParser
 from Scout.database import Database
 from Scout.utils import DSQuery, createJSON
 
+
 class Error(Exception):
     """Application error."""
 
@@ -53,8 +54,9 @@ def read_options():
     parser.add_option("-b", "--backend",
                       action="store",
                       dest="backend",
-                      help="Backend to use for the events (stackoverflow, github, ...)")
-    parser.add_option("-j","--json",
+                      help="Backend to use for the events " +
+                            "(stackoverflow, github, ...)")
+    parser.add_option("-j", "--json",
                       action="store",
                       dest="json_file",
                       default="events.json",
@@ -79,7 +81,6 @@ def read_options():
                       default=False,
                       help="Debug mode")
 
-
     (opts, args) = parser.parse_args()
 
     if len(args) != 0:
@@ -98,14 +99,15 @@ def string_to_datetime(s, schema):
     except ValueError:
         raise Error("Parsing date %s to %s format" % (s, schema))
 
+
 def load_csv_file(filepath, db, backend):
     """Load a CSV events file in MySQL."""
     import csv
-    if backend not in ("stackoverflow","github","mail"):
+    if backend not in ("stackoverflow", "github", "mail"):
         raise ("Backend not supported: " + backend)
     try:
         # mail csv file is ASCII. The rest is UTF8
-        if backend in ["mail","stackoverflow"]:
+        if backend in ["mail", "stackoverflow"]:
             infile = open(filepath, 'rt')
         elif backend in ["github"]:
             import codecs
@@ -122,13 +124,14 @@ def load_csv_file(filepath, db, backend):
         # Don't use CSV module for this format. Not easy to parse with it.
         pass
     elif backend == "mail":
-        data = csv.reader(infile, delimiter=',',quotechar='"', escapechar='\\')
+        data = csv.reader(infile, delimiter=',', quotechar='"',
+                          escapechar='\\')
     else:
-        data = csv.reader(infile, delimiter=',',quotechar='"')
+        data = csv.reader(infile, delimiter=',', quotechar='"')
 
     try:
         fields = None
-        if backend in ["mail","stackoverflow"]:
+        if backend in ["mail", "stackoverflow"]:
             for event_data in data:
                 if backend != "mail":
                     # In mail CSV we don't have fields in the first row
@@ -137,8 +140,8 @@ def load_csv_file(filepath, db, backend):
                         fields = event_data
                         continue
                 # TODO: Loosing " inside the body. To be fixed. Quick hack.
-                event_data = [fevent.replace('"','') for fevent in event_data]
-                event_data_str = '"'+ '","'.join(event_data)+'"'
+                event_data = [fevent.replace('"', '') for fevent in event_data]
+                event_data_str = '"' + '","'.join(event_data) + '"'
                 if backend == "stackoverflow":
                     db.stackoverflow_insert_event(event_data_str, fields)
                 elif backend == "github":
@@ -163,6 +166,7 @@ def load_csv_file(filepath, db, backend):
         infile.close()
     return count_events, count_events_new
 
+
 def create_events(filepath, backend):
     dsquery = DSQuery(opts.dbuser, opts.dbpassword, opts.dbname)
 
@@ -170,7 +174,8 @@ def create_events(filepath, backend):
         table = "stackoverflow_events"
         url_posts = "http://stackoverflow.com/questions/"
         # Common fields for all events: date, summmary, url
-        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, CreationDate as date, title as summary, "
+        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, " + \
+            "CreationDate as date, title as summary, "
         q += " ViewCount as views, Score as score, PostTypeId as type, body "
         q += " FROM " + table
         q += " ORDER BY date DESC "
@@ -179,7 +184,8 @@ def create_events(filepath, backend):
     def get_github_events():
         table = "github_events"
         # Common fields for all events: date, summmary, url
-        q = "SELECT repo_url as url, created_at as date, repo_name as summary, type, body, status "
+        q = "SELECT repo_url as url, created_at as date, " + \
+            "repo_name as summary, type, body, status "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
@@ -193,25 +199,26 @@ def create_events(filepath, backend):
         return dsquery.ExecuteQuery(q)
 
     if backend == "stackoverflow":
-        res = {"stackoverflow":get_stackoverflow_events()}
+        res = {"stackoverflow": get_stackoverflow_events()}
         createJSON(res, filepath)
 
     elif backend == "github":
-        res = {"github":get_github_events()}
+        res = {"github": get_github_events()}
         createJSON(res, filepath)
 
     elif backend == "mail":
-        res = {"mail":get_mail_events()}
+        res = {"mail": get_mail_events()}
         createJSON(res, filepath)
 
     elif backend is None:
         # Generate all events
-        res = {"stackoverflow":get_stackoverflow_events(),
-               "github":get_github_events(),
-               "mail":get_mail_events()}
+        res = {"stackoverflow": get_stackoverflow_events(),
+               "github": get_github_events(),
+               "mail": get_mail_events()}
         createJSON(res, filepath)
 
-def create_tables (backend):
+
+def create_tables(backend):
     if opts.backend == "stackoverflow":
         db.create_tables_stackoverflow()
     elif opts.backend == "github":
@@ -223,7 +230,7 @@ def create_tables (backend):
         raise
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO,format='%(asctime)s %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
     opts = read_options()
     db = Database(opts.dbuser, opts.dbpassword, opts.dbname)
