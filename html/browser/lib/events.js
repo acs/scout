@@ -149,8 +149,19 @@ var Events = {};
         $('#target').html(rendered);
     };
 
+    function get_event_author(author, data_source) {
+        // Convert author to common format abd mangle emails
+        if (data_source === "github" || data_source === "stackoverflow") {
+                author = "<a href='"+author+"'>"+author+"</a>";
+        }
+        else if (data_source === "mail") {
+            author = author.replace("@","_dot_");
+        }
+        return author;
+    }
+
     function get_event_type(type, data_source) {
-        // Translare event code to human language
+        // Translate event code to human language
         var human_type = type;
         if (data_source === "github") {
             if (type == "CreateEvent") {
@@ -183,6 +194,9 @@ var Events = {};
             event[fields[i]] = val;
             if (fields[i] === "type") {
                 event[fields[i]] = get_event_type(val, data_source);
+            }
+            else if (fields[i] === "author") {
+                event[fields[i]] = get_event_author(val, data_source);
             }
         });
         if (data_source === "mail") {

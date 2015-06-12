@@ -216,6 +216,8 @@ class Database(object):
         event_data[2] = event_data[2].replace("api.", "").replace("repos/", "")
         event_data[3] = \
             datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        # author should be changed to https://github.com/user_id
+        event_data[4] = event_data[4].replace("api.", "").replace("users/", "")
         # Work with payload
         payload = event_data[5][:-1][1:]
         payload = payload.replace('""', '"')

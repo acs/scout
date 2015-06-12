@@ -173,10 +173,12 @@ def create_events(filepath, backend):
     def get_stackoverflow_events():
         table = "stackoverflow_events"
         url_posts = "http://stackoverflow.com/questions/"
+        url_user = "http://stackoverflow.com/users/"
         # Common fields for all events: date, summmary, url
         q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, " + \
             "CreationDate as date, title as summary, "
-        q += " ViewCount as views, Score as score, PostTypeId as type, body "
+        q += "ViewCount as views, Score as score, PostTypeId as type, body, "
+        q += "CONCAT('"+url_user+"',User_Link) as author"
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
@@ -185,7 +187,7 @@ def create_events(filepath, backend):
         table = "github_events"
         # Common fields for all events: date, summmary, url
         q = "SELECT repo_url as url, created_at as date, " + \
-            "repo_name as summary, type, body, status "
+            "repo_name as summary, type, body, status, actor_url as author "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
@@ -193,7 +195,7 @@ def create_events(filepath, backend):
     def get_mail_events():
         table = "mail_events"
         # Common fields for all events: date, summmary, url
-        q = "SELECT url, sent_at as date, subject as summary, body "
+        q = "SELECT url, sent_at as date, subject as summary, body, author "
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
