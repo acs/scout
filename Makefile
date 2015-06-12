@@ -41,4 +41,4 @@ cleandb:
 
 .PHONY: clean
 clean:
-	rm -rf *.csv events.json
+	rm -rf *.csv scout.json
