@@ -91,8 +91,8 @@ def read_options():
     return opts
 
 
-def load_reedit(keyword, db, backend):
-    """Load reedit items in MySQL"""
+def load_reddit(keyword, db, backend):
+    """Load reddit items in MySQL"""
     # Right now only 100 events are gathered. No pagination done.
     # Around two weeks in centos
     import os
@@ -104,7 +104,7 @@ def load_reedit(keyword, db, backend):
     url += "&sort=new"
     url += "&limit="+str(limit)
 
-    cache_file = "data/reedit_cache.json"
+    cache_file = "data/reddit_cache.json"
 
     if not os.path.isfile(cache_file):
         import requests
@@ -117,20 +117,23 @@ def load_reedit(keyword, db, backend):
             data = json.loads(f.read())
     for child in data['data']['children']:
         if child['kind'] != "t3":
-            logging.warn("Only t3 (links) supported in reedit " +
+            logging.warn("Only t3 (links) supported in reddit " +
                          child['kind'])
             continue
 
         cdata = child['data']
-        reedit_id = cdata['id']
+        reddit_id = cdata['id']
         title = cdata['title']
         created = datetime.fromtimestamp(cdata['created'])
         created = created.strftime('%Y-%m-%d %H:%M:%S')
-        # url = cdata['url']
         url = cdata['permalink']
         author = cdata['author']
         body = cdata['selftext']
-        db.reedit_insert_event(reedit_id, title, created, url, author, body)
+        score = cdata['score']
+        likes = cdata['likes']
+        ncomments = cdata['num_comments']
+        db.reddit_insert_event(reddit_id, title, created, url, author,
+                               body, score, likes, ncomments)
 
 
 def load_csv_file(filepath, db, backend):
@@ -233,14 +236,15 @@ def create_events(filepath, backend):
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
 
-    def get_reedit_events():
-        table = "reedit_events"
+    def get_reddit_events():
+        table = "reddit_events"
         url_posts = "https://www.reddit.com/"
         url_user = "https://www.reddit.com/user/"
         # Common fields for all events: date, summmary, url
         q = "SELECT CONCAT('"+url_posts+"',url) as url, " + \
             "created as date, title as summary, body, "
-        q += "CONCAT('"+url_user+"',author) as author"
+        q += "CONCAT('"+url_user+"',author) as author, "
+        q += "score, likes, num_comments"
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
@@ -257,8 +261,8 @@ def create_events(filepath, backend):
         res = {"mail": get_mail_events()}
         createJSON(res, filepath)
 
-    elif backend == "reedit":
-        res = {"reedit": get_reedit_events()}
+    elif backend == "reddit":
+        res = {"reddit": get_reddit_events()}
         createJSON(res, filepath)
 
     elif backend is None:
@@ -266,7 +270,7 @@ def create_events(filepath, backend):
         res = {"stackoverflow": get_stackoverflow_events(),
                "github": get_github_events(),
                "mail": get_mail_events(),
-               "reedit": get_reedit_events()}
+               "reddit": get_reddit_events()}
         createJSON(res, filepath)
 
 
@@ -277,8 +281,8 @@ def create_tables(backend):
         db.create_tables_github()
     elif opts.backend == "mail":
         db.create_tables_mail()
-    elif opts.backend == "reedit":
-        db.create_tables_reedit()
+    elif opts.backend == "reddit":
+        db.create_tables_reddit()
     else:
         logging.error(opts.backend + " not supported")
         raise
@@ -294,11 +298,11 @@ if __name__ == '__main__':
             create_events(opts.json_file, opts.backend)
         else:
             create_tables(opts.backend)
-            if opts.backend != "reedit":
+            if opts.backend != "reddit":
                 load_csv_file(opts.events_file, db, opts.backend)
             else:
                 keyword = "centos"  # right now it is hard coded in others
-                load_reedit(keyword, db, opts.backend)
+                load_reddit(keyword, db, opts.backend)
     except Error as e:
         print(e)
 

@@ -182,7 +182,7 @@ var Events = {};
     function get_event_author(author, data_source) {
         // Convert author to common format abd mangle emails
         if (data_source === "github" || data_source === "stackoverflow" ||
-            data_source === "reedit") {
+            data_source === "reddit") {
                 author = "<a href='"+author+"'>"+author+"</a>";
         }
         else if (data_source === "mail") {
@@ -234,8 +234,8 @@ var Events = {};
             // mail events does not include type
             event.type = "email sent";
         }
-        if (data_source === "reedit") {
-            // reedit events does not include yet type
+        if (data_source === "reddit") {
+            // reddit events does not include yet type
             event.type = "link";
         }
         return event;

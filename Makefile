@@ -9,7 +9,7 @@ help:
 	$(info - github:		Load data from github)
 	$(info - stackoverflow: 	Load data from stackoverflow)
 	$(info - mail:			Load data from mail archives)
-	$(info - reedit:		Load data from reedit)
+	$(info - reddit:		Load data from reddit)
 	$(info - events:		Generate events JSON file)
 	$(info - deploy:		Deploy JSON file to be shown in the web)
 	$(info )
@@ -18,7 +18,7 @@ help:
 SCOUT=./scout.py
 DBNAME=scout
 DBUSER=root
-BACKENDS=github stackoverflow mail reedit
+BACKENDS=github stackoverflow mail reddit
 DEPLOY=../VizGrimoireJS/browser
 
 %.csv: %.csv.gz
@@ -36,7 +36,7 @@ stackoverflow: data/StackOverFlowCentOS-P1.csv
 mail: data/MailmanOpenStackCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-reedit: data/reedit_cache.json.gz
+reddit: data/reddit_cache.json.gz
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 .PHONY: events

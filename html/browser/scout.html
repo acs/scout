@@ -64,9 +64,9 @@
             {{#mail}}
             <i class="fa fa-mail-forward fa-2x"></i></a>
             {{/mail}}
-            {{#reedit}}
+            {{#reddit}}
             <i class="fa fa-reddit fa-2x"></i></a>
-            {{/reedit}}
+            {{/reddit}}
             <p><strong><a href="{{url}}">{{summary}}</a></strong>
                 &bull; <small class="when">{{timestamp}}</small>
                 &bull; <small>Type: {{type}}</small>
@@ -78,6 +78,10 @@
                 &bull; <small>Views: {{views}}</small>
                 &bull; <small>Score: {{score}}</small>
                 {{/stackoverflow}}
+                {{#reddit}}
+                &bull; <small>Comments: {{num_comments}}</small>
+                &bull; <small>Score: {{score}}</small>
+                {{/reddit}}
             </p>
             <p class="event">{{#limitLength}}{{body}}{{/limitLength}}</p>
         </li>
