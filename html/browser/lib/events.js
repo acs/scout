@@ -27,6 +27,7 @@ var Events = {};
 (function() {
 
     Events.events = {};
+    Events.scout = undefined;
     var data_callbacks = [];
 
     Events.data_ready = function(callback) {
@@ -59,21 +60,37 @@ var Events = {};
                     });
             });
         }
+        var divs = $(".ScoutSummary");
+        if (divs.length > 0){
+            $.each(divs, function(id, div) {
+                loadScoutEventsData(
+                    function(){
+                        displayEventsScoutSummary(div);
+                    });
+            });
+        }
     };
 
     function loadScoutEventsData (cb) {
         var json_file = "data/json/scout.json";
-        $.when($.getJSON(json_file)
-                ).done(function(json_data) {
-                Events.scout = json_data;
-                cb();
-                for (var j = 0; j < data_callbacks.length; j++) {
-                    if (data_callbacks[j].called !== true) data_callbacks[j]();
-                    data_callbacks[j].called = true;
-                }
-        }).fail(function() {
-            console.log("Events widget disabled. Missing " + json_file);
-        });
+        if (Events.scout !== undefined) {
+            cb();
+        }
+        else {
+            $.when($.getJSON(json_file)
+                    ).done(function(json_data) {
+                    Events.scout = json_data;
+                    cb();
+                    for (var j = 0; j < data_callbacks.length; j++) {
+                        if (data_callbacks[j].called !== true) {
+                            data_callbacks[j]();
+                        }
+                        data_callbacks[j].called = true;
+                    }
+            }).fail(function() {
+                console.log("Scout widget disabled. Missing " + json_file);
+            });
+        }
     }
 
     function loadEventsData (ds_name, cb) {
@@ -104,6 +121,19 @@ var Events = {};
         // if (!div.id) div.id = "Parsed" + getRandomId();
         // $("#"+div.id).append(html);
         show_timeline_scout();
+    }
+
+    function displayEventsScoutSummary (div) {
+        // Use a button group in order to interact later using it
+        html = '<div class="btn-group pull-right" role="group" ';
+        html += 'aria-label="summary table">';
+        $.each(Events.scout, function(ds, data) {
+            html += "<button type='button' class='btn btn-default'>";
+            html += ds + ":" + data.date.length + " ";
+            html += "</button>";
+        });
+        html += "</div>";
+        $(div).append(html);
     }
 
     function HTMLEvents (ds_name, event_){

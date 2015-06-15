@@ -36,7 +36,7 @@ mail: MailmanOpenStackCentOS-P1.csv
 events: cleandb github stackoverflow mail
 	$(SCOUT) -j scout.json  -u root -d scout
 
-scout.json: events
+# scout.json: events
 
 deploy: scout.json
 	cp $^ $(DEPLOY)/data/json
