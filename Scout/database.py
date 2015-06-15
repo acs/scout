@@ -43,6 +43,8 @@ class Database(object):
                       TableIndex('ghcreation', 'github_events', 'created_at'))
     INDEXES_mail = (TableIndex('mailsubject', 'mail_events', 'subject'),
                     TableIndex('mailcreation', 'mail_events', 'sent_at'))
+    INDEXES_reedit = (TableIndex('reeditsubject', 'reedit_events', 'subject'),
+                      TableIndex('reeditcreation', 'reedit_events', 'sent_at'))
 
     def __init__(self, myuser, mypassword, mydb):
         self.myuser = myuser
@@ -124,9 +126,7 @@ class Database(object):
         self.drop_indexes("github")
         self.create_indexes("github")
 
-    # Management functions
     def create_tables_mail(self):
-        # type,repo_name,repo_url,created_at,payload
         query = "CREATE TABLE IF NOT EXISTS mail_events (" + \
                 "id int(11) NOT NULL AUTO_INCREMENT," + \
                 "message_id varchar(255)," + \
@@ -143,6 +143,22 @@ class Database(object):
         self.drop_indexes("mail")
         self.create_indexes("mail")
 
+    def create_tables_reedit(self):
+        query = "CREATE TABLE IF NOT EXISTS reedit_events (" + \
+                "id int(11) NOT NULL AUTO_INCREMENT," + \
+                "reedit_id varchar(255)," + \
+                "title varchar(255)," + \
+                "created DATETIME NOT NULL," + \
+                "url varchar(255)," + \
+                "author varchar(255)," + \
+                "body TEXT," + \
+                "PRIMARY KEY (id)" + \
+                ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
+        self.cursor.execute(query)
+
+        self.drop_indexes("reedit")
+        self.create_indexes("reedit")
+
     def drop_tables_stackoverflow(self):
         query = "DROP TABLE IF EXISTS stackoverflow_events"
         self.cursor.execute(query)
@@ -155,6 +171,10 @@ class Database(object):
         query = "DROP TABLE IF EXISTS mail_events"
         self.cursor.execute(query)
 
+    def drop_tables_reedit(self):
+        query = "DROP TABLE IF EXISTS reedit_events"
+        self.cursor.execute(query)
+
     def create_indexes(self, backend="stackoverflow"):
         if backend == "stackoverflow":
             indexes = Database.INDEXES_stackoverflow
@@ -162,6 +182,8 @@ class Database(object):
             indexes = Database.INDEXES_github
         elif backend == "mail":
             indexes = Database.INDEXES_mail
+        elif backend == "reedit":
+            indexes = Database.INDEXES_reedit
         else:
             return
         for idx in indexes:
@@ -292,6 +314,27 @@ class Database(object):
         if event[-2:] == '\\"':
             event = event.replace('\\"', '\\ "')
         query = query + event + ")"
+
+        self.cursor.execute(query)
+        self.conn.commit()
+
+    def reedit_insert_event(self, reedit_id, title, created,
+                            url, author, body):
+        # fields not included in CSV file
+        fields = ['reedit_id', 'title', 'created', 'url', 'author', 'body']
+
+        query = "INSERT INTO reedit_events ("
+        for field in fields:
+            query += field + ","
+        query = query[:-1]
+        query += ") "
+        query += "VALUES ("
+        body = body.replace("'", "\\'")
+        title = title.replace("'", "\\'")
+        values = "','".join([reedit_id, title, created, url, author, body])
+        values = "'"+values+"'"
+        # Convert to Unicode to support unicode values
+        query = u' '.join((query, values, ")")).encode('utf-8')
 
         self.cursor.execute(query)
         self.conn.commit()

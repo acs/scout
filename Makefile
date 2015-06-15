@@ -6,9 +6,10 @@ help:
 	$(info Available options:)
 	$(info )
 	$(info - all:			Load events from all data sources and generate events)
-	$(info - github:		Load data for github)
-	$(info - stackoverflow: 	Load data for stackoverflow)
-	$(info - mail:			Load data for mail archives)
+	$(info - github:		Load data from github)
+	$(info - stackoverflow: 	Load data from stackoverflow)
+	$(info - mail:			Load data from mail archives)
+	$(info - reedit:		Load data from reedit)
 	$(info - events:		Generate events JSON file)
 	$(info - deploy:		Deploy JSON file to be shown in the web)
 	$(info )
@@ -17,20 +18,26 @@ help:
 SCOUT=./scout.py
 DBNAME=scout
 DBUSER=root
-BACKENDS=github stackoverflow mail
+BACKENDS=github stackoverflow mail reedit
 DEPLOY=../VizGrimoireJS/browser
 
 %.csv: %.csv.gz
 	gunzip -c $^  > $@
 
-github: GithubReposCentOS-P1.csv
+%.json: %.json.gz
+	gunzip -c $^  > $@
+
+github: data/GithubReposCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-stackoverflow: StackOverFlowCentOS-P1.csv
+stackoverflow: data/StackOverFlowCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-mail: MailmanOpenStackCentOS-P1.csv
+mail: data/MailmanOpenStackCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
+
+reedit: data/reedit_cache.json.gz
+	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 .PHONY: events
 events: cleandb github stackoverflow mail
@@ -49,8 +56,8 @@ pep8:
 all: pep8 cleandb $(BACKENDS) events deploy
 
 cleandb:
-	echo "drop database $(DBNAME)" | mysql -u $(DBUSER)
+	echo "drop database if exists $(DBNAME)" | mysql -u $(DBUSER)
 
 .PHONY: clean
-clean:
-	rm -rf *.csv scout.json
+clean: cleandb
+	rm -rf data/*.csv data/*.json scout.json

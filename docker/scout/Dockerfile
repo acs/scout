@@ -21,7 +21,7 @@ RUN apt-get update && \
         psmisc \
         python pep8 \
         apache2 \
-        python-mysqldb\
+        python-mysqldb python-requests \
         make \
         && \
     apt-get clean && \

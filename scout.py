@@ -59,7 +59,6 @@ def read_options():
     parser.add_option("-j", "--json",
                       action="store",
                       dest="json_file",
-                      default="events.json",
                       help="Generate a JSON file with the events.")
     parser.add_option("-d", "--database",
                       action="store",
@@ -92,16 +91,50 @@ def read_options():
     return opts
 
 
-def string_to_datetime(s, schema):
-    """Convert string to datetime object"""
-    try:
-        return datetime.strptime(s, schema)
-    except ValueError:
-        raise Error("Parsing date %s to %s format" % (s, schema))
+def load_reedit(keyword, db, backend):
+    """Load reedit items in MySQL"""
+    # Right now only 100 events are gathered. No pagination done.
+    # Around two weeks in centos
+    import os
+    import json
+
+    # https://www.reddit.com/search.json?q=centos&sort=new
+    limit = 100  # max 100
+    url = "https://www.reddit.com/search.json?q="+keyword
+    url += "&sort=new"
+    url += "&limit="+str(limit)
+
+    cache_file = "data/reedit_cache.json"
+
+    if not os.path.isfile(cache_file):
+        import requests
+        r = requests.get(url, verify=False, headers={'user-agent': 'scout'})
+        data = r.json()
+        with open(cache_file, 'w') as f:
+            f.write(json.dumps(data))
+    else:
+        with open(cache_file) as f:
+            data = json.loads(f.read())
+    for child in data['data']['children']:
+        if child['kind'] != "t3":
+            logging.warn("Only t3 (links) supported in reedit " +
+                         child['kind'])
+            continue
+
+        cdata = child['data']
+        reedit_id = cdata['id']
+        title = cdata['title']
+        created = datetime.fromtimestamp(cdata['created'])
+        created = created.strftime('%Y-%m-%d %H:%M:%S')
+        # url = cdata['url']
+        url = cdata['permalink']
+        author = cdata['author']
+        body = cdata['selftext']
+        db.reedit_insert_event(reedit_id, title, created, url, author, body)
 
 
 def load_csv_file(filepath, db, backend):
-    """Load a CSV events file in MySQL."""
+    """Load a CSV events file in MySQL"""
     import csv
     if backend not in ("stackoverflow", "github", "mail"):
         raise ("Backend not supported: " + backend)
@@ -200,6 +233,18 @@ def create_events(filepath, backend):
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)
 
+    def get_reedit_events():
+        table = "reedit_events"
+        url_posts = "https://www.reddit.com/"
+        url_user = "https://www.reddit.com/user/"
+        # Common fields for all events: date, summmary, url
+        q = "SELECT CONCAT('"+url_posts+"',url) as url, " + \
+            "created as date, title as summary, body, "
+        q += "CONCAT('"+url_user+"',author) as author"
+        q += " FROM " + table
+        q += " ORDER BY date DESC "
+        return dsquery.ExecuteQuery(q)
+
     if backend == "stackoverflow":
         res = {"stackoverflow": get_stackoverflow_events()}
         createJSON(res, filepath)
@@ -212,11 +257,16 @@ def create_events(filepath, backend):
         res = {"mail": get_mail_events()}
         createJSON(res, filepath)
 
+    elif backend == "reedit":
+        res = {"reedit": get_reedit_events()}
+        createJSON(res, filepath)
+
     elif backend is None:
         # Generate all events
         res = {"stackoverflow": get_stackoverflow_events(),
                "github": get_github_events(),
-               "mail": get_mail_events()}
+               "mail": get_mail_events(),
+               "reedit": get_reedit_events()}
         createJSON(res, filepath)
 
 
@@ -227,6 +277,8 @@ def create_tables(backend):
         db.create_tables_github()
     elif opts.backend == "mail":
         db.create_tables_mail()
+    elif opts.backend == "reedit":
+        db.create_tables_reedit()
     else:
         logging.error(opts.backend + " not supported")
         raise
@@ -237,13 +289,16 @@ if __name__ == '__main__':
     opts = read_options()
     db = Database(opts.dbuser, opts.dbpassword, opts.dbname)
     db.open_database()
-
     try:
-        if not opts.events_file and opts.json_file:
+        if opts.json_file:
             create_events(opts.json_file, opts.backend)
         else:
             create_tables(opts.backend)
-            load_csv_file(opts.events_file, db, opts.backend)
+            if opts.backend != "reedit":
+                load_csv_file(opts.events_file, db, opts.backend)
+            else:
+                keyword = "centos"  # right now it is hard coded in others
+                load_reedit(keyword, db, opts.backend)
     except Error as e:
         print(e)
 
