@@ -23,6 +23,7 @@ RUN apt-get update && \
         apache2 \
         python-mysqldb python-requests \
         make \
+        unzip wget \
         && \
     apt-get clean && \
     find /var/lib/apt/lists -type f -delete
@@ -41,13 +42,18 @@ RUN git clone https://github.com/VizGrimoire/VizGrimoireJS.git
 RUN cd VizGrimoireJS && make && \
     cd .. && sudo ln -s ${DEPLOY_USER_DIR}/VizGrimoireJS events && \
     mkdir -p VizGrimoireJS/browser/data/json
+# We need to update awesome for adding reddit icon
+RUN cd VizGrimoireJS/browser/css && \
+    mv awesome awesome.old && \
+    wget http://fortawesome.github.io/Font-Awesome/assets/font-awesome-4.3.0.zip && \
+    unzip font-awesome-4.3.0.zip && mv font-awesome-4.3.0 awesome
 
 # get Scout repository
 RUN git clone https://github.com/acs/scout scout
 
 # Generate events and deploy them
 RUN sudo service mysql start && \
-    cd scout && make events && \
+    cd scout && make all && \
     cp scout.json ../VizGrimoireJS/browser/data/json/ && \
     cp html/browser/scout.html ../VizGrimoireJS/browser/index.html && \
     cp html/browser/lib/events.js ../VizGrimoireJS/browser/lib
