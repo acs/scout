@@ -24,6 +24,7 @@ RUN apt-get update && \
         python-mysqldb python-requests \
         make \
         unzip wget \
+        npm nodejs nodejs-legacy \
         && \
     apt-get clean && \
     find /var/lib/apt/lists -type f -delete
@@ -33,6 +34,9 @@ ADD configure-mysql.sh ${SCRIPTS_DIR}/configure-mysql.sh
 # preseed debconf to set the mysql root password
 RUN ${SCRIPTS_DIR}/configure-mysql.sh
 RUN apt-get update && apt-get install -qy mysql-server
+
+# jshint style for javascript code quality
+RUN npm install -g jshint
 
 USER ${DEPLOY_USER}
 WORKDIR ${DEPLOY_USER_DIR}
