@@ -86,6 +86,7 @@ class Database(object):
         query = "CREATE TABLE IF NOT EXISTS stackoverflow_events (" + \
                 "id int(11) NOT NULL AUTO_INCREMENT," + \
                 "Post_Link VARCHAR(255) NULL," + \
+                "DisplayName VARCHAR(255) NULL," + \
                 "title VARCHAR(255) NULL," + \
                 "tags TEXT NULL," + \
                 "CreationDate DATETIME NOT NULL," + \

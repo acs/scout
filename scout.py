@@ -214,7 +214,8 @@ def create_events(filepath, backend):
         q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, " + \
             "CreationDate as date, title as summary, "
         q += "ViewCount as views, Score as score, PostTypeId as type, body, "
-        q += "CONCAT('"+url_user+"',User_Link) as author"
+        q += "CONCAT('"+url_user+"',User_Link) as author_url, "
+        q += "DisplayName as author"
         q += " FROM " + table
         q += " ORDER BY date DESC "
         return dsquery.ExecuteQuery(q)

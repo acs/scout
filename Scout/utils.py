@@ -117,7 +117,6 @@ def convertDatetime(data):
 def createJSON(data, filepath):
     checked_data = convertDatetime(data)
     json_data = json.dumps(checked_data, sort_keys=True)
-    json_data = json_data.replace('NaN', '"NA"')
     jsonfile = open(filepath, 'w')
     jsonfile.write(json_data)
     jsonfile.close()

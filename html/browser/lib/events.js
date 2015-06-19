@@ -179,14 +179,13 @@ var Events = {};
         $('#target').html(rendered);
     };
 
-    function get_event_author(author, data_source) {
+    function get_event_author(author, data_source, url) {
         // Convert author to common format abd mangle emails
-        if (data_source === "github" || data_source === "stackoverflow" ||
-            data_source === "reddit") {
-                author = "<a href='"+author+"'>"+author+"</a>";
-        }
-        else if (data_source === "mail") {
-            author = author.replace("@","_dot_");
+        if (data_source === "github" || data_source === "reddit"
+            || data_source === "stackoverflow") {
+            author = "<a href='"+url+"'>"+author+"</a>";
+        } else if (data_source === "mail") {
+            author = author.replace("@","_at_");
         }
         return author;
     }
@@ -227,7 +226,15 @@ var Events = {};
                 event[fields[i]] = get_event_type(val, data_source);
             }
             else if (fields[i] === "author") {
-                event[fields[i]] = get_event_author(val, data_source);
+                var author_url;
+                if (fields.indexOf("author_url") > -1) {
+                    author_url = data['author_url'][index];
+                } else {
+                    author_url = val;
+                }
+                // Remove the URL from author name
+                val = val.split("/").pop();
+                event[fields[i]] = get_event_author(val, data_source, author_url);
             }
         });
         if (data_source === "mail") {
