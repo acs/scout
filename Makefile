@@ -46,6 +46,7 @@ events: cleandb github stackoverflow mail
 # scout.json: events
 
 deploy: scout.json
+	cat $^ | python -m json.tool > /dev/null
 	cp $^ $(DEPLOY)/data/json
 	cp -a html/browser/* $(DEPLOY)
 	cp -a html/browser/scout.html $(DEPLOY)/index.html
