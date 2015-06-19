@@ -54,7 +54,10 @@ deploy: scout.json
 pep8:
 	pep8 --exclude=VizGrimoireJS .
 
-all: pep8 cleandb $(BACKENDS) events deploy
+jshint:
+	jshint html
+
+all: jshint pep8 cleandb $(BACKENDS) events deploy
 
 cleandb:
 	echo "drop database if exists $(DBNAME)" | mysql -u $(DBUSER)
