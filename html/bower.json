@@ -1,0 +1,16 @@
+{
+  "name": "Scoutgy",
+  "description": "Scouting event platform",
+  "version": "0.0.1",
+  "homepage": "https://github.com/acs/scout",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "1.2.x",
+    "angular-route": "1.2.x",
+    "angular-loader": "1.2.x",
+    "angular-mocks": "~1.2.x",
+    "bootstrap": "~3.1.1",
+    "jquery": "1.11.1"
+  }
+}

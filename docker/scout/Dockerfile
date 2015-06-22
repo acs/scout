@@ -37,31 +37,19 @@ RUN apt-get update && apt-get install -qy mysql-server
 
 # jshint style for javascript code quality
 RUN npm install -g jshint
+# compiling angularjs app
+RUN npm install -g bower
 
 USER ${DEPLOY_USER}
 WORKDIR ${DEPLOY_USER_DIR}
-
-# Build web interface
-RUN git clone https://github.com/VizGrimoire/VizGrimoireJS.git
-RUN cd VizGrimoireJS && make && \
-    cd .. && sudo ln -s ${DEPLOY_USER_DIR}/VizGrimoireJS events && \
-    mkdir -p VizGrimoireJS/browser/data/json
-# We need to update awesome for adding reddit icon
-RUN cd VizGrimoireJS/browser/css && \
-    mv awesome awesome.old && \
-    wget http://fortawesome.github.io/Font-Awesome/assets/font-awesome-4.3.0.zip && \
-    unzip font-awesome-4.3.0.zip && mv font-awesome-4.3.0 awesome
 
 # get Scout repository
 RUN git clone https://github.com/acs/scout scout
 
 # Generate events and deploy them
 RUN sudo service mysql start && \
-    cd scout && make all && \
-    cp scout.json ../VizGrimoireJS/browser/data/json/ && \
-    cp html/browser/scout.html ../VizGrimoireJS/browser/index.html && \
-    cp html/browser/lib/events.js ../VizGrimoireJS/browser/lib
+    cd scout && make deploy
 
 USER root
 RUN mv /var/www/html /var/www/html.orig
-RUN ln -s ${DEPLOY_USER_DIR}/VizGrimoireJS/browser /var/www/html
+RUN ln -s ${DEPLOY_USER_DIR}/app /var/www/html

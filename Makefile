@@ -19,13 +19,19 @@ SCOUT=./scout.py
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail reddit
-DEPLOY=../VizGrimoireJS/browser
+
+#
+# PYTHON
+#
 
 %.csv: %.csv.gz
 	gunzip -c $^  > $@
 
 %.json: %.json.gz
 	gunzip -c $^  > $@
+
+pep8:
+	pep8 --exclude=VizGrimoireJS,./html .
 
 github: data/GithubReposCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
@@ -43,19 +49,26 @@ reddit: data/reddit_cache.json.gz
 events: cleandb github stackoverflow mail
 	$(SCOUT) -j scout.json  -u root -d scout
 
-# scout.json: events
+#
+# JAVASCRIPT
+#
 
-deploy: scout.json
-	cat $^ | python -m json.tool > /dev/null
-	cp $^ $(DEPLOY)/data/json
-	cp -a html/browser/* $(DEPLOY)
-	cp -a html/browser/scout.html $(DEPLOY)/index.html
-
-pep8:
-	pep8 --exclude=VizGrimoireJS .
+APP=html/browserng/app
+APP_JS= $(APP)/app.js $(APP)/controllers.js $(APP)/scout $(APP)/lib/events.js
 
 jshint:
-	jshint html
+	jshint html/browser/lib
+
+DEPLOY=/home/bitergia
+
+# scout.json: events
+deploy: scout.json
+	cat $^ | python -m json.tool > /dev/null
+	cd html && npm install && cd ..
+	rm -rf $(DEPLOY)/app
+	cp -a html/app $(DEPLOY)
+	mkdir -p $(DEPLOY)/app/data/json
+	cp $^ $(DEPLOY)/app/data/json
 
 all: jshint pep8 cleandb $(BACKENDS) events deploy
 
