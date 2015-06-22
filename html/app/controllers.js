@@ -6,6 +6,7 @@ datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce',
   function ($scope, $sce) {
     Events.data_ready(function() {
         $scope.scout_events = Events.get_timeline_events();
+        $scope.scout_events_raw = Events.scout;
         $scope.$apply(); // To be removed when data is loaded from angular
     });
 

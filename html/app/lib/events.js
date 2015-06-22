@@ -33,28 +33,7 @@ var Events = {};
         data_callbacks.push(callback);
     };
 
-    Events.widget = function(){
-        divs = $(".Scout");
-        if (divs.length > 0){
-            $.each(divs, function(id, div) {
-                loadScoutEventsData(
-                    function(){
-                        displayEventsScout(div);
-                    });
-            });
-        }
-        divs = $(".ScoutSummary");
-        if (divs.length > 0){
-            $.each(divs, function(id, div) {
-                loadScoutEventsData(
-                    function(){
-                        displayEventsScoutSummary(div);
-                    });
-            });
-        }
-    };
-
-    function loadScoutEventsData (cb) {
+    Events.loadScoutEventsData = function(cb) {
         var json_file = "data/json/scout.json";
         if (Events.scout !== undefined) {
             cb();
@@ -63,7 +42,7 @@ var Events = {};
             $.when($.getJSON(json_file)
                     ).done(function(json_data) {
                     Events.scout = json_data;
-                    cb();
+                    if (cb) {cb();}
                     for (var j = 0; j < data_callbacks.length; j++) {
                         if (data_callbacks[j].called !== true) {
                             data_callbacks[j]();
@@ -74,23 +53,6 @@ var Events = {};
                 console.log("Scout widget disabled. Missing " + json_file);
             });
         }
-    }
-
-    function displayEventsScout (div) {
-        show_timeline_scout();
-    }
-
-    function displayEventsScoutSummary (div) {
-        // Use a button group in order to interact later using it
-        html = '<div class="btn-group pull-right" role="group" ';
-        html += 'aria-label="summary table">';
-        $.each(Events.scout, function(ds, data) {
-            html += "<button type='button' class='btn btn-default'>";
-            html += ds + ":" + data.date.length + " ";
-            html += "</button>";
-        });
-        html += "</div>";
-        $(div).append(html);
     }
 
     function get_event_author(author, data_source, url) {
@@ -205,10 +167,6 @@ var Events = {};
         return timeline_events;
     };
 
-    show_timeline_scout = function() {
-        show_mustache_view(Events.get_timeline_events());
-    };
-
     Events.highlightLimit = function (text, keyword, limit) {
         var n = text.search(new RegExp(keyword, "i"));
         var out = '';
@@ -223,27 +181,6 @@ var Events = {};
         }
         return out;
     };
-
-    function show_mustache_view(timeline_events) {
-        var template = $('#template_scout').html();
-
-        Mustache.parse(template);
-        var rendered = Mustache.render(template,
-                {"events":timeline_events,
-                 "limitLength" : function() {
-                     var limit = 80;
-                     return function(text, render) {
-                         var r = render(text);
-                         var keyword = 'centos';
-                         out = Events.highlightLimit (r, keyword, limit);
-                         return out;
-                     };
-                 }
-                });
-        $('#target').html(rendered);
-    }
 })();
 
-Loader.data_ready(function() {
-    Events.widget();
-});
+Events.loadScoutEventsData();

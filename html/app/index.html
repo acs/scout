@@ -62,13 +62,52 @@
 </head>
 <body>
 
-    <div id="Navbar"></div>
+    <!-- Navbar -->
+    <div class="navmenu navmenu-default navmenu-fixed-left offcanvas" role="navigation">
+      <a class="navmenu-brand report_name" href="./"></a>
+    </div>
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="row">
+        <div class="col-md-9">
+          <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <span class="navbar-brand">
+            <img src="./demo-bitergia.png" style="height: 25px;">
+          </span>
+        </div>
+      </div>
+    </div>
+    <!-- Navbar -->
+
 
     <div ng-view></div>
 
+    <!--  Footer -->
     <footer>
-        <div id="Footer"></div>
+        <div class="row">
+            <div class="col-md-5">
+                <span class="pull-left">
+                    Powered  by <a href="http://metricsgrimoire.github.com/">MetricsGrimoire</a>
+                    and <a href="http://vizgrimoire.bitergia.org/">VizGrimoire</a>
+                    <span id="vizjs-lib-version"></span></span>
+            </div>
+
+            <div class="col-md-5 col-md-offset-2">
+                <span class="pull-right">
+                    &#169; 2012-2014
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="http://creativecommons.org/licenses/by-sa/3.0/es/deed.es">
+                        <img src="cc-by-sa.png" border=0 alt="CC by-sa"></a>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bitergia.com/"><img src="bitergia-logo.png" alt="Bitergia logo" id="logo" height="45"
+                                                                                width="90" border=0></a>
+                </span>
+            </div>
+        </div>
     </footer>
+    <!--  Footer -->
 
     <!-- Angular + Bootstrap core JavaScript
          ================================================== -->
@@ -83,10 +122,8 @@
     <script src="controllers.js"></script>
     <script src="./lib/jquery-1.11.1.min.js"></script>
     <script src="./lib/bootstrap-3.1.1.min.js"></script>
-    <script src="./lib/vizgrimoire.min.js"></script>
     <script src="./lib/events.js"></script>
     <script src="./lib/moment.min.js"></script>
-    <!--  <script src="./lib/mustache.js"></script>  -->
 </body>
 </html>
 
