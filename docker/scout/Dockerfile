@@ -48,7 +48,7 @@ RUN git clone https://github.com/acs/scout scout
 
 # Generate events and deploy them
 RUN sudo service mysql start && \
-    cd scout && make deploy
+    cd scout && make all
 
 USER root
 RUN mv /var/www/html /var/www/html.orig
