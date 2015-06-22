@@ -202,7 +202,7 @@ var Events = {};
         // Order events in time to build a common time line with the events from all data sources
         timeline_events = events_sort(timeline_events);
 
-        return timeline_events
+        return timeline_events;
     };
 
     show_timeline_scout = function() {
@@ -222,7 +222,7 @@ var Events = {};
             out = text.substr(0,80) + '...';
         }
         return out;
-    }
+    };
 
     function show_mustache_view(timeline_events) {
         var template = $('#template_scout').html();
@@ -241,7 +241,7 @@ var Events = {};
                  }
                 });
         $('#target').html(rendered);
-    };
+    }
 })();
 
 Loader.data_ready(function() {
