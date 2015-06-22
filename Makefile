@@ -57,7 +57,7 @@ APP=html/browserng/app
 APP_JS= $(APP)/app.js $(APP)/controllers.js $(APP)/scout $(APP)/lib/events.js
 
 jshint:
-	jshint html/browser/lib
+	jshint html/app/lib
 
 DEPLOY=/home/bitergia
 
