@@ -67,6 +67,8 @@ deploy: scout.json
 	cd html && npm install && cd ..
 	rm -rf $(DEPLOY)/app
 	cp -a html/app $(DEPLOY)
+	rm -rf $(DEPLOY)/app/bower_components
+	cp -a html/bower_components $(DEPLOY)/app
 	mkdir -p $(DEPLOY)/app/data/json
 	cp $^ $(DEPLOY)/app/data/json
 
