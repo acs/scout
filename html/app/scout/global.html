@@ -1,17 +1,25 @@
 <div class="container-fluid">
     <div class="row" data-ng-show="scout_events != undefined">
-        <div class="btn-group pull-right">
-        {{filter.ds}}
-        <label ng-repeat="(ds, ds_events) in scout_events_raw"
-            class="btn btn-primary" btn-checkbox ng-model="$parent.filter.dss[ds]">
-            {{ds}}:{{ds_events.date.length}}</label>
+        <div class="col-md-6 btn-group pull-left">
+            <label ng-repeat="(ds, ds_events) in scout_events_raw"
+                class="btn btn-default" btn-checkbox ng-model="$parent.filter.dss[ds]">
+                {{ds}}:{{ds_events.date.length}}</label>
+        </div>
+        <div class="col-md-6">
+        <form class="form-inline">
+            <div class="form-group pull-right">
+                <input type="text" class="form-control" ng-model="filter_text"
+                    placeholder="Filter by subject, body, author" autofocus>
+                <button type="button" class="btn btn-primary">Search</button>
+            </div>
+        </form>
         </div>
     </div>
 
     <div class="row" data-ng-show="scout_events != undefined">
         <ul class="list-group timeline">
             <li class="list-group-item"
-                ng-repeat="event in scout_events">
+                ng-repeat="event in scout_events | filter:filterBySubject">
                 <a class="avatar" href="{{event.url}}">
                 <i data-ng-show="event.stackoverflow" class="fa fa-stack-overflow fa-2x"></i>
                 <i data-ng-show="event.github" class="fa fa-github fa-2x"></i>

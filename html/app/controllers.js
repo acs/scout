@@ -51,4 +51,21 @@ datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce',
 
         $scope.scout_events = Events.get_timeline_events(dss_to_include);
     };
+
+    $scope.filterBySubject = function(event) {
+        if ($scope.filter_text === undefined) {
+            return true;
+        }
+        var summary = event.summary.toLowerCase();
+        if (event.body === null) {
+            event.body = '';
+        }
+        var body = event.body.toLowerCase();
+        var author = event.author.toLowerCase();
+        var search = $scope.filter_text.toLowerCase();
+        var found = (summary.indexOf(search) !== -1) ||
+                    (author.indexOf(search) !== -1) ||
+                    (body.indexOf(search) !== -1);
+        return found;
+    };
  }]);
