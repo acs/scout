@@ -7,8 +7,19 @@ datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce',
     Events.data_ready(function() {
         $scope.scout_events = Events.get_timeline_events();
         $scope.scout_events_raw = Events.scout;
+        $scope.filter = {"dss":undefined, // data sources
+                         "subject":undefined,
+                         "body":undefined,
+                         "author":undefined};
         $scope.$apply(); // To be removed when data is loaded from angular
     });
+
+    $scope.$watch('filter.dss', function (newVal, oldVal) {
+        if (newVal === undefined) {
+            return;
+        }
+        $scope.filter_dss($scope.filter.dss);
+    }, true); // <-- objectEquality
 
     $scope.getEventAuthor = function(author_html) {
         var url = $sce.trustAsHtml(author_html);
@@ -24,4 +35,20 @@ datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce',
         }
         return res;
     }
+
+    $scope.filter_dss = function(dss) {
+        // Filter data sources not included in dss array
+        var dss_to_include = [];
+        if (angular.equals({}, dss)) {
+            // No filters defined
+            return;
+        }
+        angular.forEach(dss, function(include, ds) {
+            if (include) {
+                dss_to_include.push(ds);
+            }
+        });
+
+        $scope.scout_events = Events.get_timeline_events(dss_to_include);
+    };
  }]);

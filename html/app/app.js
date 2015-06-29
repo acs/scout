@@ -4,7 +4,8 @@
 
 var dashApp = angular.module('scoutApp', [
   'ngRoute',
-  'datasourceControllers'
+  'datasourceControllers',
+  'ui.bootstrap'
 ]);
 
 dashApp.config(['$routeProvider', function($routeProvider) {

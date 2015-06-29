@@ -18,6 +18,8 @@ develop-eggs
 # lib
 lib64
 VizGrimoireJS
+bower_components
+node_modules
 
 # Installer logs
 pip-log.txt

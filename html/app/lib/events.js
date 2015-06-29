@@ -147,8 +147,17 @@ var Events = {};
         return events;
     }
 
-    Events.get_timeline_events = function() {
+    Events.get_timeline_events = function(dss) {
         var events_ds = Events.scout;
+        if (dss !== undefined && dss.length > 0) {
+            events_ds = {};
+            // Just include the events from dss array data sources
+            $.each(Events.scout, function(data_source, events){
+                if (dss.indexOf(data_source, dss) !== -1) {
+                    events_ds[data_source] = Events.scout[data_source];
+                }
+            });
+        }
         var timeline_events = []; // All events to be shown in the timeline
 
         // First, create the common time series format: [date:[d1,d2, ...], event:[e1,e2, ...]]
