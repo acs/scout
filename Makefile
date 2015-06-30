@@ -10,6 +10,7 @@ help:
 	$(info - stackoverflow: 	Load data from stackoverflow)
 	$(info - mail:			Load data from mail archives)
 	$(info - reddit:		Load data from reddit)
+	$(info - gmane:			Load data from gmane)
 	$(info - events:		Generate events JSON file)
 	$(info - deploy:		Deploy JSON file to be shown in the web)
 	$(info )
@@ -18,7 +19,7 @@ help:
 SCOUT=PYTHONPATH=. bin/scout
 DBNAME=scout
 DBUSER=root
-BACKENDS=github stackoverflow mail reddit
+BACKENDS=github stackoverflow mail reddit gmane
 
 #
 # PYTHON
@@ -42,11 +43,14 @@ stackoverflow: data/StackOverFlowCentOS-P1.csv
 mail: data/MailmanOpenStackCentOS-P1.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-reddit: data/reddit_cache.json.gz
+reddit: data/reddit_cache.json
+	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
+
+gmane: data/gmane_cache.csv
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 .PHONY: events
-events: cleandb github stackoverflow mail reddit
+events: cleandb github stackoverflow mail reddit gmane
 	$(SCOUT) -j scout.json  -u root -d scout
 
 #

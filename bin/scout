@@ -32,6 +32,7 @@ from optparse import OptionParser
 
 from scout.database import Database
 from scout.github import Github
+from scout.gmane import Gmane
 from scout.mail import Mail
 from scout.reddit import Reddit
 from scout.stackoverflow import Stackoverflow
@@ -105,6 +106,8 @@ def get_datasource(backend, db, keyword):
         ds = Mail(db, keyword)
     elif backend == "reddit":
         ds = Reddit(db, keyword)
+    elif backend == "gmane":
+        ds = Gmane(db, keyword)
     else:
         logging.error(backend + " not supported")
         raise
@@ -121,7 +124,8 @@ def create_events(filepath, backend, db, keyword):
         res = {"stackoverflow": Stackoverflow(db, keyword).get_events(),
                "github": Github(db, keyword).get_events(),
                "mail": Mail(db, keyword).get_events(),
-               "reddit": Reddit(db, keyword).get_events()
+               "reddit": Reddit(db, keyword).get_events(),
+               "gmane": Gmane(db, keyword).get_events(),
                }
 
     createJSON(res, filepath)
