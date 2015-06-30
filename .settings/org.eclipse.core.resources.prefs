@@ -1,9 +1,10 @@
 eclipse.preferences.version=1
-encoding//Scout/database.py=utf-8
-encoding//Scout/utils.py=utf-8
+encoding//bin/scout=utf-8
 encoding//pyircanalysis/database.py=utf-8
 encoding//pyircanalysis/parsers.py=utf-8
+encoding//scout/database.py=utf-8
+encoding//scout/datasource.py=utf-8
+encoding//scout/utils.py=utf-8
 encoding//test/test_irc.py=utf-8
 encoding/irc_analysis.py=utf-8
-encoding/scout.py=utf-8
 encoding/setup.py=utf-8

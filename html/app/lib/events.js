@@ -53,7 +53,7 @@ var Events = {};
                 console.log("Scout widget disabled. Missing " + json_file);
             });
         }
-    }
+    };
 
     function get_event_author(author, data_source, url) {
         // Convert author to common format abd mangle emails

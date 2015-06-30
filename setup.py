@@ -32,4 +32,4 @@ setup(name="Scout tool",
       url="https://github.com/MetricsGrimoire/scout",
       packages=["Scout"],
       data_files=[],
-      scripts=["scout.py"])
+      scripts=["bin/scout.py"])

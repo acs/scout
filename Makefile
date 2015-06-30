@@ -15,7 +15,7 @@ help:
 	$(info )
 	@echo ""
 
-SCOUT=./scout.py
+SCOUT=PYTHONPATH=. bin/scout
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail reddit
@@ -46,7 +46,7 @@ reddit: data/reddit_cache.json.gz
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 .PHONY: events
-events: cleandb github stackoverflow mail
+events: cleandb github stackoverflow mail reddit
 	$(SCOUT) -j scout.json  -u root -d scout
 
 #
