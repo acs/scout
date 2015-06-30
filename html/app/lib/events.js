@@ -60,7 +60,7 @@ var Events = {};
         if (data_source === "github" || data_source === "reddit" ||
             data_source === "stackoverflow") {
             author = "<a href='"+url+"'>"+author+"</a>";
-        } else if (data_source === "mail") {
+        } else if (data_source === "mail" || data_source === "gmane") {
             author = author.replace("@","_at_");
         }
         return author;
@@ -83,7 +83,7 @@ var Events = {};
                 human_type = "new comment";
             }
         }
-        else if (data_source === "mail") {
+        else if (data_source === "mail" || data_source === "gmane") {
             human_type = "mail sent";
         }
         return human_type;
@@ -113,15 +113,15 @@ var Events = {};
                 event[fields[i]] = get_event_author(val, data_source, author_url);
             }
         });
-        if (data_source === "mail") {
-            // mail events does not include type
+        if (data_source === "mail" || data_source === "gmane") {
+            // mail and gmane events does not include type
             event.type = "email sent";
         }
         if (data_source === "reddit") {
             // reddit events does not include yet type
             event.type = "link";
         }
-        event.isCollapsed = true; // Show complete body contents
+        event.isCollapsed = true; // Collapse complete body contents
         return event;
     }
 

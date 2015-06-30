@@ -42,8 +42,11 @@
                         &bull; <small>Score: {{event.score}}</small>
                     </span>
                 </p>
-                <div class="event"><span ng-bind-html="parseBody(event.body)"></span>
-                    <a href='' ng-click="event.isCollapsed = !event.isCollapsed">More</a>
+                <div class="event"">
+                    <span ng-bind-html="parseBody(event.body)"></span>
+                    <span data-ng-show="event.body != ''">
+                        <a href='' ng-click="event.isCollapsed = !event.isCollapsed">More</a>
+                    </span>
                     <div collapse="event.isCollapsed">
                         <div class="well well-lg"><pre>{{event.body}}</pre></div>
                     </div>
