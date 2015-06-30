@@ -66,7 +66,7 @@ class Gmane(DataSource):
 
         # http://search.gmane.org/nov.php?query=centos
         # &sort=date&HITSPERPAGE=999
-        limit = 999  # max 999
+        limit = 100  # max 999
         url = "http://search.gmane.org/nov.php?query="+self.keyword
         url += "&sort=date"
         url += "&HITSPERPAGE="+str(limit)
