@@ -121,6 +121,7 @@ var Events = {};
             // reddit events does not include yet type
             event.type = "link";
         }
+        event.isCollapsed = true; // Show complete body contents
         return event;
     }
 
