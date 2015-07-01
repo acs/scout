@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="">
+<meta name="description" content="Scout prototype">
 <meta name="author" content="Bitergia">
 <link rel="shortcut icon" href="../../assets/ico/favicon.png">
 
@@ -62,22 +62,10 @@
 <body>
 
     <!-- Navbar -->
-    <div class="navmenu navmenu-default navmenu-fixed-left offcanvas" role="navigation">
-      <a class="navmenu-brand report_name" href="./"></a>
-    </div>
     <div class="navbar navbar-default navbar-fixed-top">
-      <div class="row">
-        <div class="col-md-9">
-          <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <span class="navbar-brand">
-            <img src="./demo-bitergia.png" style="height: 25px;">
-          </span>
-        </div>
-      </div>
+      <span class="navbar-brand">
+        Scout <span class="label label-danger">beta</span>
+      </span>
     </div>
     <!-- Navbar -->
 
@@ -85,19 +73,16 @@
     <div ng-view></div>
 
     <!--  Footer -->
-    <footer>
+    <footer style="position: fixed; bottom: 0; width: 100%; padding-top: 5px;">
         <div class="row">
-            <div class="col-md-5">
-            </div>
-
-            <div class="col-md-5 col-md-offset-2">
-                <span class="pull-right">
+            <div class="col-md-12" style="text-align: center;">
+                <span>
                     &#169; 2012-2014
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <a href="http://creativecommons.org/licenses/by-sa/3.0/es/deed.es">
                         <img src="cc-by-sa.png" border=0 alt="CC by-sa"></a>
                     &nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bitergia.com/"><img src="bitergia-logo.png" alt="Bitergia logo" id="logo" height="45"
-                                                                                width="90" border=0></a>
+                                                                                width="80" border=0></a>
                 </span>
             </div>
         </div>
@@ -122,4 +107,3 @@
     <script src="./lib/moment.min.js"></script>
 </body>
 </html>
-
