@@ -1,6 +1,6 @@
 <div class="container-fluid">
     <div class="row" data-ng-show="scout_events != undefined">
-        <div class="col-md-6">
+        <div class="col-md-6 col-xs-12">
           <span><small>Events found for <i>"centos"</i>:</small></span>
           <div class="btn-group btn-group-sm">
             <label ng-repeat="(ds, ds_events) in scout_events_raw"
@@ -8,7 +8,7 @@
                 <b>{{ds}}</b>:{{ds_events.date.length}}</label>
           </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 col-xs-12">
           <form class="form-inline  pull-right">
               <div class="form-group">
                   <input type="text" style="width: auto;" class="form-control input-sm" ng-model="filter_text"
