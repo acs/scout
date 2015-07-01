@@ -20,17 +20,22 @@ DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail reddit gmane
 
-# Select the keyword you want to generate: 4 lines.
+ifndef $(KEYWORD)
+	KEYWORD=centos
+endif
 
-KEYWORD=centos
-GITHUB_CSV=data/GithubReposCentOS-P1.csv
-STACKOVERFLOW_CSV=data/StackOverFlowCentOS-P1.csv
-MAIL_CSV=data/MailmanOpenStackCentOS-P1.csv
-
-# KEYWORD=coreclr
-# GITHUB_CSV=data/GithubReposCoreCLR.csv
-# STACKOVERFLOW_CSV=data/StackOverFlowCoreCLR.csv
-# MAIL_CSV=data/MailmanOpenStackCoreCLR.csv
+# TO BE REMOVED 
+ifeq ($(KEYWORD),centos)
+	GITHUB_CSV=data/GithubReposCentOS-P1.csv
+	STACKOVERFLOW_CSV=data/StackOverFlowCentOS-P1.csv
+	MAIL_CSV=data/MailmanOpenStackCentOS-P1.csv
+endif
+ifeq ($(KEYWORD),coreclr)
+	GITHUB_CSV=data/GithubReposCoreCLR.csv
+	STACKOVERFLOW_CSV=data/StackOverFlowCoreCLR.csv
+	MAIL_CSV=data/MailmanOpenStackCoreCLR.csv
+endif
+# END TO BE REMOVED 
 
 SCOUT=PYTHONPATH=. bin/scout --keyword $(KEYWORD)
 
