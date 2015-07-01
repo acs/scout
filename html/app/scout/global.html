@@ -1,22 +1,25 @@
 <div class="container-fluid">
     <div class="row" data-ng-show="scout_events != undefined">
-        <div class="col-md-6 btn-group pull-left">
+        <div class="col-md-6">
+          <span><small>Events found for <i>"centos"</i>:</small></span>
+          <div class="btn-group btn-group-sm">
             <label ng-repeat="(ds, ds_events) in scout_events_raw"
                 class="btn btn-default" btn-checkbox ng-model="$parent.filter.dss[ds]">
-                {{ds}}:{{ds_events.date.length}}</label>
+                <b>{{ds}}</b>:{{ds_events.date.length}}</label>
+          </div>
         </div>
         <div class="col-md-6">
-        <form class="form-inline">
-            <div class="form-group pull-right">
-                <input type="text" class="form-control" ng-model="filter_text"
-                    placeholder="Filter by subject, body, author" autofocus>
-                <button type="button" class="btn btn-primary">Search</button>
-            </div>
-        </form>
+          <form class="form-inline  pull-right">
+              <div class="form-group">
+                  <input type="text" style="width: auto;" class="form-control input-sm" ng-model="filter_text"
+                      placeholder="Filter by subject, body, author" autofocus>
+                  <button type="button" class="btn btn-primary btn-sm">Search</button>
+              </div>
+          </form>
         </div>
     </div>
 
-    <div class="row" data-ng-show="scout_events != undefined">
+    <div class="row" style="padding-top: 1em;" data-ng-show="scout_events != undefined">
         <ul class="list-group timeline">
             <li class="list-group-item"
                 ng-repeat="event in scout_events | filter:filterBySubject">
@@ -42,7 +45,7 @@
                         &bull; <small>Score: {{event.score}}</small>
                     </span>
                 </p>
-                <div class="event"">
+                <div class="event">
                     <span ng-bind-html="parseBody(event.body)"></span>
                     <span data-ng-show="event.body != ''">
                         <a href='' ng-click="event.isCollapsed = !event.isCollapsed">More</a>
@@ -55,4 +58,3 @@
         </ul>
     </div>
 </div>
-
