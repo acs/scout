@@ -118,15 +118,18 @@ def get_datasource(backend, db, keyword):
 def create_events(filepath, backend, db, keyword):
 
     if backend is not None:
-        res = get_datasource(backend, db, keyword).get_events()
+        events = get_datasource(backend, db, keyword).get_events()
     else:
         # Generate all events
-        res = {"stackoverflow": Stackoverflow(db, keyword).get_events(),
-               "github": Github(db, keyword).get_events(),
-               "mail": Mail(db, keyword).get_events(),
-               "reddit": Reddit(db, keyword).get_events(),
-               "gmane": Gmane(db, keyword).get_events(),
-               }
+        events = {"stackoverflow": Stackoverflow(db, keyword).get_events(),
+                  "github": Github(db, keyword).get_events(),
+                  "mail": Mail(db, keyword).get_events(),
+                  "reddit": Reddit(db, keyword).get_events(),
+                  "gmane": Gmane(db, keyword).get_events(),
+                  }
+
+    res = {"events":events,
+           "keyword":keyword}
 
     createJSON(res, filepath)
 

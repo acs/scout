@@ -16,10 +16,23 @@ help:
 	$(info )
 	@echo ""
 
-SCOUT=PYTHONPATH=. bin/scout
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail reddit gmane
+
+# Select the keyword you want to generate: 4 lines.
+
+KEYWORD=centos
+GITHUB_CSV=data/GithubReposCentOS-P1.csv
+STACKOVERFLOW_CSV=data/StackOverFlowCentOS-P1.csv
+MAIL_CSV=data/MailmanOpenStackCentOS-P1.csv
+
+# KEYWORD=coreclr
+# GITHUB_CSV=data/GithubReposCoreCLR.csv
+# STACKOVERFLOW_CSV=data/StackOverFlowCoreCLR.csv
+# MAIL_CSV=data/MailmanOpenStackCoreCLR.csv
+
+SCOUT=PYTHONPATH=. bin/scout --keyword $(KEYWORD)
 
 #
 # PYTHON
@@ -34,19 +47,19 @@ BACKENDS=github stackoverflow mail reddit gmane
 pep8:
 	pep8 --exclude=VizGrimoireJS,./html .
 
-github: data/GithubReposCentOS-P1.csv
+github: $(GITHUB_CSV)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-stackoverflow: data/StackOverFlowCentOS-P1.csv
+stackoverflow: $(STACKOVERFLOW_CSV)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-mail: data/MailmanOpenStackCentOS-P1.csv
+mail: $(MAIL_CSV)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-reddit: data/reddit_cache.json
+reddit:
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
-gmane: data/gmane_cache.csv
+gmane:
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 .PHONY: events

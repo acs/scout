@@ -1,7 +1,7 @@
 <!-- <div class="container-fluid">-->
     <div class="row" data-ng-show="scout_events != undefined">
         <div class="col-sm-6 col-xs-12">
-          <span><small>Events found for <i>"centos"</i>:</small></span>
+          <span><small>Events found for <i>"{{keyword}}"</i>:</small></span>
           <div class="btn-group btn-group-sm">
             <label ng-repeat="(ds, ds_events) in scout_events_raw"
                 class="btn btn-default" btn-checkbox ng-model="$parent.filter.dss[ds]">
@@ -46,7 +46,7 @@
                     </span>
                 </p>
                 <div class="event">
-                    <span ng-bind-html="parseBody(event.body)"></span>
+                    <span ng-bind-html="parseBody(event.body,'{{keyword}}')"></span>
                     <span data-ng-show="event.body != ''">
                         <a href='' ng-click="event.isCollapsed = !event.isCollapsed">More</a>
                     </span>

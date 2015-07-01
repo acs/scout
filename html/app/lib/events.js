@@ -41,7 +41,8 @@ var Events = {};
         else {
             $.when($.getJSON(json_file)
                     ).done(function(json_data) {
-                    Events.scout = json_data;
+                    Events.scout = json_data.events;
+                    Events.keyword = json_data.keyword;
                     if (cb) {cb();}
                     for (var j = 0; j < data_callbacks.length; j++) {
                         if (data_callbacks[j].called !== true) {

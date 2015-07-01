@@ -2,17 +2,27 @@
 
 var datasourceControllers = angular.module('datasourceControllers', []);
 
-datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce',
-  function ($scope, $sce) {
-    Events.data_ready(function() {
+datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce','$timeout',
+  function ($scope, $sce, $timeout) {
+    function data_ready() {
         $scope.scout_events = Events.get_timeline_events();
+        $scope.keyword = Events.keyword;
         $scope.scout_events_raw = Events.scout;
         $scope.filter = {"dss":undefined, // data sources
                          "subject":undefined,
                          "body":undefined,
                          "author":undefined};
-        $scope.$apply(); // To be removed when data is loaded from angular
-    });
+        $timeout(function() {
+            $scope.$apply(); // To be removed when data is loaded from angular
+        });
+    }
+
+    if (Events.scout === undefined) {
+        // If the data is not yet available, subscribe not data ready event
+        Events.data_ready(data_ready);
+    } else {
+        data_ready();
+    }
 
     $scope.$watch('filter.dss', function (newVal, oldVal) {
         if (newVal === undefined) {
@@ -26,9 +36,8 @@ datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce',
         return url;
     }
 
-    $scope.parseBody = function(body) {
+    $scope.parseBody = function(body, keyword) {
         var limit = 80;
-        var keyword = "centos";
         var res = "";
         if (body !== null) {
             res = $sce.trustAsHtml(Events.highlightLimit(body, keyword, limit));
