@@ -35,6 +35,14 @@ var Events = {};
 
     Events.loadScoutEventsData = function(cb) {
         var json_file = "data/json/scout.json";
+        // The JSON file could be passed as param
+        if (document.URL.split('?').length > 1) {
+            param = document.URL.split('?')[1].split("&")[0].split("=");
+            if (param[0] === "events_file") {
+                json_file = "data/json/"+param[1];
+            }
+        }
+
         if (Events.scout !== undefined) {
             cb();
         }

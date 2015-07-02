@@ -93,6 +93,7 @@ deploy: scout.json
 	cp -a html/bower_components $(DEPLOY)/app
 	mkdir -p $(DEPLOY)/app/data/json
 	cp $^ $(DEPLOY)/app/data/json
+	cp $^ $(DEPLOY)/app/data/json/$(KEYWORD).json
 
 all: jshint pep8 cleandb $(BACKENDS) events deploy
 
