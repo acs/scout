@@ -102,4 +102,4 @@ cleandb:
 
 .PHONY: clean
 clean: cleandb
-	rm -rf data/*.csv data/*.json scout.json
+	rm -rf data/*.csv data/*.json scout.json data/*_cache.json
