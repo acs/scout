@@ -20,6 +20,7 @@ lib64
 VizGrimoireJS
 bower_components
 node_modules
+meetup_api_key
 
 # Installer logs
 pip-log.txt
