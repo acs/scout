@@ -44,6 +44,10 @@
                         &bull; <small>Comments: {{event.num_comments}}</small>
                         &bull; <small>Score: {{event.score}}</small>
                     </span>
+                    <span data-ng-show="event.meetup">
+                        &bull; <small>Attendees: {{event.yes_rsvp_count}}</small>
+                        &bull; <small>Score: {{event.score}}</small>
+                    </span>
                 </p>
                 <div class="event">
                     <span ng-bind-html="parseBody(event.body,'{{keyword}}')"></span>

@@ -34,6 +34,7 @@ from scout.database import Database
 from scout.github import Github
 from scout.gmane import Gmane
 from scout.mail import Mail
+from scout.meetup import Meetup
 from scout.reddit import Reddit
 from scout.stackoverflow import Stackoverflow
 from scout.utils import createJSON
@@ -83,6 +84,10 @@ def read_options():
                       dest="keyword",
                       default="centos",
                       help="keyword to use to search events")
+    parser.add_option("--key",
+                      action="store",
+                      dest="key",
+                      help="key to be used with the API")
 
     (opts, args) = parser.parse_args()
 
@@ -92,10 +97,13 @@ def read_options():
     if not (opts.dbname and opts.dbuser):
         parser.error("--database --db-user are needed")
 
+    if opts.backend == "meetup" and not opts.key:
+        parser.error("meetup backend needs --key with the API key")
+
     return opts
 
 
-def get_datasource(backend, db, keyword):
+def get_datasource(backend, db, keyword, key = None):
     ds = None
 
     if backend == "stackoverflow":
@@ -108,6 +116,8 @@ def get_datasource(backend, db, keyword):
         ds = Reddit(db, keyword)
     elif backend == "gmane":
         ds = Gmane(db, keyword)
+    elif backend == "meetup":
+        ds = Meetup(db, keyword, key)
     else:
         logging.error(backend + " not supported")
         raise
@@ -115,7 +125,7 @@ def get_datasource(backend, db, keyword):
     return ds
 
 
-def create_events(filepath, backend, db, keyword):
+def create_events(filepath, backend, db, keyword, key = None):
 
     if backend is not None:
         events = get_datasource(backend, db, keyword).get_events()
@@ -126,6 +136,7 @@ def create_events(filepath, backend, db, keyword):
                   "mail": Mail(db, keyword).get_events(),
                   "reddit": Reddit(db, keyword).get_events(),
                   "gmane": Gmane(db, keyword).get_events(),
+                  "meetup": Meetup(db, keyword, key).get_events(),
                   }
 
     res = {"events":events,
@@ -145,10 +156,10 @@ if __name__ == '__main__':
     db.open_database()
 
     if opts.json_file:
-        create_events(opts.json_file, opts.backend, db, opts.keyword)
+        create_events(opts.json_file, opts.backend, db, opts.keyword, opts.key)
     else:
         create_tables(opts.backend, db, opts.keyword)
-        ds = get_datasource(opts.backend, db, opts.keyword)
+        ds = get_datasource(opts.backend, db, opts.keyword, opts.key)
         ds.download_events(opts.events_file)
 
     db.close_database()

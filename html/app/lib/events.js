@@ -65,9 +65,9 @@ var Events = {};
     };
 
     function get_event_author(author, data_source, url) {
-        // Convert author to common format abd mangle emails
+        // Convert author to common format and mangle emails
         if (data_source === "github" || data_source === "reddit" ||
-            data_source === "stackoverflow") {
+            data_source === "stackoverflow" || data_source == "meetup") {
             author = "<a href='"+url+"'>"+author+"</a>";
         } else if (data_source === "mail" || data_source === "gmane") {
             author = author.replace("@","_at_");

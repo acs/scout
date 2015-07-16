@@ -11,6 +11,7 @@ help:
 	$(info - mail:			Load data from mail archives)
 	$(info - reddit:		Load data from reddit)
 	$(info - gmane:			Load data from gmane)
+	$(info - meetup:		Load data from meetup)
 	$(info - events:		Generate events JSON file)
 	$(info - deploy:		Deploy JSON file to be shown in the web)
 	$(info )
@@ -18,7 +19,8 @@ help:
 
 DBNAME=scout
 DBUSER=root
-BACKENDS=github stackoverflow mail reddit gmane
+BACKENDS=github stackoverflow mail reddit gmane meetup
+
 
 ifndef $(KEYWORD)
 	KEYWORD=centos
@@ -67,8 +69,12 @@ reddit:
 gmane:
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
+meetup:
+	@echo "meetup_api_key file must include a Meetup API KEY\n" 
+	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
+
 .PHONY: events
-events: cleandb github stackoverflow mail reddit gmane
+events: cleandb github stackoverflow mail reddit gmane meetup
 	$(SCOUT) -j scout.json  -u root -d scout
 
 #
