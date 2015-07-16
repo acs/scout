@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Database storage module
+# Reddit backend for scout
 #
 # Copyright (C) 2012-2015 Bitergia
 #

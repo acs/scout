@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Database storage module
+# Stackoverflow backend for scout
 #
 # Copyright (C) 2012-2015 Bitergia
 #
