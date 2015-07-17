@@ -56,10 +56,6 @@ def read_options():
                       dest="backend",
                       help="Backend to use for the events " +
                             "(stackoverflow, github, ...)")
-    parser.add_option("-j", "--json",
-                      action="store",
-                      dest="json_file",
-                      help="Generate a JSON file with the events.")
     parser.add_option("-d", "--database",
                       action="store",
                       dest="dbname",
@@ -88,6 +84,12 @@ def read_options():
                       action="store",
                       dest="key",
                       help="key to be used with the API")
+    parser.add_option("--events",
+                      action="store_true",
+                      default=False,
+                      dest="events",
+                      help="generate events")
+
 
     (opts, args) = parser.parse_args()
 
@@ -119,31 +121,41 @@ def get_datasource(backend, db, keyword, key = None):
     elif backend == "meetup":
         ds = Meetup(db, keyword, key)
     else:
-        logging.error(backend + " not supported")
+        logging.error(backend, " not supported")
         raise
 
     return ds
 
-
-def create_events(filepath, backend, db, keyword, key = None):
+def create_events(backend, db, keyword, key = None):
+    config_json = "scout.json"  # File with data sources available and others
+    backends = ["stackoverflow", "github", "mail", "reddit", "gmane", "meetup"]
+    events = {}
 
     if backend is not None:
-        events = get_datasource(backend, db, keyword).get_events()
-    else:
-        # Generate all events
-        events = {"stackoverflow": Stackoverflow(db, keyword).get_events(),
-                  "github": Github(db, keyword).get_events(),
-                  "mail": Mail(db, keyword).get_events(),
-                  "reddit": Reddit(db, keyword).get_events(),
-                  "gmane": Gmane(db, keyword).get_events(),
-                  "meetup": Meetup(db, keyword, key).get_events(),
-                  }
+        backends = [backend]
+
+    if backend is not None and backend not in backends:
+        logging.error(backend + " not supported")
+
+    for backend in backends:
+        events[backend] = get_datasource(backend, db, keyword, key).get_events()
 
     res = {"events":events,
            "keyword":keyword}
 
-    createJSON(res, filepath)
+    # Create JSON file with all events
+    createJSON(res, keyword+".json")
 
+    # Create a JSON file with event per data source
+    for backend in events:
+        res = {"events":{backend:events[backend]},
+               "keyword":keyword}
+        createJSON(res, keyword+"-"+backend+".json")
+
+    # Create JSON file with backends available and other config info
+    res = {"backends":backends,
+           "keyword":keyword}
+    createJSON(res, config_json)
 
 def create_tables(backend, db, keyword):
     return get_datasource(backend, db, keyword).create_tables()
@@ -155,8 +167,8 @@ if __name__ == '__main__':
     db = Database(opts.dbuser, opts.dbpassword, opts.dbname)
     db.open_database()
 
-    if opts.json_file:
-        create_events(opts.json_file, opts.backend, db, opts.keyword, opts.key)
+    if opts.events:
+        create_events(opts.backend, db, opts.keyword, opts.key)
     else:
         create_tables(opts.backend, db, opts.keyword)
         ds = get_datasource(opts.backend, db, opts.keyword, opts.key)

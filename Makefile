@@ -75,7 +75,7 @@ meetup:
 
 .PHONY: events
 events: cleandb github stackoverflow mail reddit gmane meetup
-	$(SCOUT) -j scout.json  -u root -d scout
+	$(SCOUT) --events -u root -d scout
 
 #
 # JAVASCRIPT
@@ -99,7 +99,7 @@ deploy: scout.json
 	cp -a html/bower_components $(DEPLOY)/app
 	mkdir -p $(DEPLOY)/app/data/json
 	cp $^ $(DEPLOY)/app/data/json
-	cp $^ $(DEPLOY)/app/data/json/$(KEYWORD).json
+	cp $(KEYWORD)*.json $(DEPLOY)/app/data/json
 
 all: jshint pep8 cleandb $(BACKENDS) events deploy
 
@@ -108,4 +108,4 @@ cleandb:
 
 .PHONY: clean
 clean: cleandb
-	rm -rf data/*.csv data/*.json scout.json data/*_cache.json
+	rm -rf $(KEYWORD).json $(KEYWORD)-*.json scout.json data/*.csv data/*.json data/*_cache.json
