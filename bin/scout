@@ -89,6 +89,10 @@ def read_options():
                       default=False,
                       dest="events",
                       help="generate events")
+    parser.add_option("--limit",
+                      action="store",
+                      dest="limit",
+                      help="limit events number generated per backend")
 
 
     (opts, args) = parser.parse_args()
@@ -105,28 +109,28 @@ def read_options():
     return opts
 
 
-def get_datasource(backend, db, keyword, key = None):
+def get_datasource(backend, db, keyword, limit = None, key = None):
     ds = None
 
     if backend == "stackoverflow":
-        ds = Stackoverflow(db, keyword)
+        ds = Stackoverflow(db, keyword, limit)
     elif backend == "github":
-        ds = Github(db, keyword)
+        ds = Github(db, keyword, limit)
     elif backend == "mail":
-        ds = Mail(db, keyword)
+        ds = Mail(db, keyword, limit)
     elif backend == "reddit":
-        ds = Reddit(db, keyword)
+        ds = Reddit(db, keyword, limit)
     elif backend == "gmane":
-        ds = Gmane(db, keyword)
+        ds = Gmane(db, keyword, limit)
     elif backend == "meetup":
-        ds = Meetup(db, keyword, key)
+        ds = Meetup(db, keyword, limit, key)
     else:
         logging.error(backend, " not supported")
         raise
 
     return ds
 
-def create_events(backend, db, keyword, key = None):
+def create_events(backend, db, keyword, limit = None, key = None):
     config_json = "scout.json"  # File with data sources available and others
     backends = ["stackoverflow", "github", "mail", "reddit", "gmane", "meetup"]
     events = {}
@@ -138,23 +142,30 @@ def create_events(backend, db, keyword, key = None):
         logging.error(backend + " not supported")
 
     for backend in backends:
-        events[backend] = get_datasource(backend, db, keyword, key).get_events()
+        events[backend] = get_datasource(backend, db, keyword, limit, key).get_events()
 
     res = {"events":events,
            "keyword":keyword}
 
     # Create JSON file with all events
-    createJSON(res, keyword+".json")
+    filename = keyword+".json"
+    if limit is not None:
+        filename = keyword+"-"+limit+".json"
+    createJSON(res, filename)
 
     # Create a JSON file with event per data source
     for backend in events:
         res = {"events":{backend:events[backend]},
                "keyword":keyword}
-        createJSON(res, keyword+"-"+backend+".json")
+        filename = keyword+"-"+backend+".json"
+        if limit is not None:
+            filename = keyword+"-"+backend+"-"+limit+".json"
+        createJSON(res, filename)
 
     # Create JSON file with backends available and other config info
     res = {"backends":backends,
-           "keyword":keyword}
+           "keyword":keyword,
+           "limit":limit}
     createJSON(res, config_json)
 
 def create_tables(backend, db, keyword):
@@ -168,10 +179,11 @@ if __name__ == '__main__':
     db.open_database()
 
     if opts.events:
-        create_events(opts.backend, db, opts.keyword, opts.key)
+        create_events(opts.backend, db, opts.keyword, opts.limit, opts.key)
     else:
         create_tables(opts.backend, db, opts.keyword)
-        ds = get_datasource(opts.backend, db, opts.keyword, opts.key)
+        ds = get_datasource(opts.backend, db, opts.keyword, 
+                            opts.limit, opts.key)
         ds.download_events(opts.events_file)
 
     db.close_database()

@@ -138,4 +138,7 @@ class Reddit(DataSource):
         q += "score, likes, num_comments"
         q += " FROM " + table
         q += " ORDER BY date DESC "
+        if self.limit is not None:
+            q += " LIMIT  " + self.limit
+
         return self.db.dsquery.ExecuteQuery(q)

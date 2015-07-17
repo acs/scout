@@ -133,4 +133,7 @@ class Github(DataSource):
             "repo_name as summary, type, body, status, actor_url as author "
         q += " FROM " + table
         q += " ORDER BY date DESC "
+        if self.limit is not None:
+            q += " LIMIT  " + self.limit
+
         return self.db.dsquery.ExecuteQuery(q)

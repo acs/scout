@@ -91,4 +91,6 @@ class Stackoverflow(DataSource):
         q += "DisplayName as author"
         q += " FROM " + table
         q += " ORDER BY date DESC "
+        if self.limit is not None:
+            q += " LIMIT  " + self.limit
         return self.db.dsquery.ExecuteQuery(q)

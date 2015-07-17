@@ -13,6 +13,7 @@ help:
 	$(info - gmane:			Load data from gmane)
 	$(info - meetup:		Load data from meetup)
 	$(info - events:		Generate events JSON file)
+	$(info - events_limit:		Generate events JSON file with a limit in number of events)
 	$(info - deploy:		Deploy JSON file to be shown in the web)
 	$(info )
 	@echo ""
@@ -21,6 +22,9 @@ DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail reddit gmane meetup
 
+ifndef $(EVENTS_LIMIT)
+	EVENTS_LIMIT=10
+endif
 
 ifndef $(KEYWORD)
 	KEYWORD=centos
@@ -74,8 +78,11 @@ meetup:
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
 
 .PHONY: events
-events: cleandb github stackoverflow mail reddit gmane meetup
+events: cleandb $(BACKENDS)
 	$(SCOUT) --events -u root -d scout
+
+events_limit: events
+	$(SCOUT) --events --limit $(EVENTS_LIMIT) -u root -d scout
 
 #
 # JAVASCRIPT
@@ -101,7 +108,7 @@ deploy: scout.json
 	cp $^ $(DEPLOY)/app/data/json
 	cp $(KEYWORD)*.json $(DEPLOY)/app/data/json
 
-all: jshint pep8 cleandb $(BACKENDS) events deploy
+all: jshint pep8 cleandb $(BACKENDS) events events_limit deploy
 
 cleandb:
 	echo "drop database if exists $(DBNAME)" | mysql -u $(DBUSER)

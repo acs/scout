@@ -91,4 +91,7 @@ class Mail(DataSource):
         q = "SELECT url, sent_at as date, subject as summary, body, author "
         q += " FROM " + table
         q += " ORDER BY date DESC "
+        if self.limit is not None:
+            q += " LIMIT  " + self.limit
+
         return self.db.dsquery.ExecuteQuery(q)

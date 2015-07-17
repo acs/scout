@@ -128,4 +128,7 @@ class Gmane(DataSource):
         q = "SELECT url, created as date, title as summary, body, author"
         q += " FROM " + table
         q += " ORDER BY date DESC "
+        if self.limit is not None:
+            q += " LIMIT  " + self.limit
+
         return self.db.dsquery.ExecuteQuery(q)

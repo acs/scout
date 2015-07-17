@@ -159,4 +159,7 @@ class Meetup(DataSource):
         q += "score, yes_rsvp_count, status"
         q += " FROM " + table
         q += " ORDER BY date DESC "
+        if self.limit is not None:
+            q += " LIMIT  " + self.limit
+
         return self.db.dsquery.ExecuteQuery(q)
