@@ -2,8 +2,9 @@
 
 var datasourceControllers = angular.module('datasourceControllers', []);
 
-datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce','$timeout',
-  function ($scope, $sce, $timeout) {
+datasourceControllers.controller('ScoutGlobalCtrl',
+        ['$scope', '$sce','$timeout', '$http', '$q',
+  function ($scope, $sce, $timeout, $http, $q) {
     function data_ready() {
         $scope.scout_events = Events.get_timeline_events();
         $scope.keyword = Events.keyword;
@@ -17,9 +18,58 @@ datasourceControllers.controller('ScoutGlobalCtrl', ['$scope', '$sce','$timeout'
         });
     }
 
+    function load_data_limited(config) {
+        // First try to load the events using limited events files
+        var backends = config.backends;
+        var limit = config.limit;
+        var urlCalls = [];
+        angular.forEach (config.backends, function (backend, i) {
+            var filename = "/data/json/" + config.keyword + "-" + backend;
+            filename += "-"+config.limit+".json";
+            console.log("Loading file " + filename);
+            urlCalls.push($http({method:'GET',url:filename}));
+        });
+        $q.all(urlCalls)
+        .then(
+          function(results) {
+              Events.scout = {};
+              // The keyword is the same for all backends
+              Events.keyword = results[0].data.keyword;
+              Events.scout = {};
+              angular.forEach (results, function (result, i) {
+                  angular.extend(Events.scout, result.data.events);
+              });
+              data_ready();
+          },
+          function(errors) {
+              console.log("Error loading events files ...")
+              console.log(errors);
+          }
+        );
+    }
+
     if (Events.scout === undefined) {
         // If the data is not yet available, subscribe not data ready event
-        Events.data_ready(data_ready);
+        // Events.data_ready(data_ready);
+
+        var scout_config = "/data/json/scout.json";
+        // The JSON file could be passed as param
+        if (document.URL.split('?').length > 1) {
+            param = document.URL.split('?')[1].split("&")[0].split("=");
+            if (param[0] === "events_file") {
+                scout_config = "/data/json/"+param[1];
+            }
+        }
+
+        $http({method:'GET',url:scout_config})
+        .success(function(data,status,headers,config){
+            load_data_limited(data);
+        }).
+        error(function(data,status,headers,config){
+            $scope.error = data;
+            console.log(data);
+        });
+
     } else {
         data_ready();
     }

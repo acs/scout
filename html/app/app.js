@@ -14,9 +14,5 @@ dashApp.config(['$routeProvider', function($routeProvider) {
           templateUrl: 'scout/global.html',
           controller: 'ScoutGlobalCtrl'
       }).
-      when('/scout_mustache', {
-          templateUrl: 'scout/global_mustache.html',
-          controller: 'ScoutGlobalCtrl'
-      }).
       otherwise({redirectTo: '/scout'});
 }]);
