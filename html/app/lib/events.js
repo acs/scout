@@ -27,7 +27,13 @@ var Events = {};
 (function() {
 
     Events.scout = undefined;
+    Events.timeline_events_all_cache = undefined;
     var data_callbacks = [];
+
+    Events.set_events = function(events) {
+        Events.scout = events;
+        Events.timeline_events_all_cache = undefined;  // clean events caches
+    };
 
     Events.data_ready = function(callback) {
         data_callbacks.push(callback);
@@ -157,8 +163,10 @@ var Events = {};
         return events;
     }
 
-    Events.get_timeline_events = function(dss) {
+    Events.get_timeline_events = function(dss, limit) {
         var events_ds = Events.scout;
+        var timeline_events = []; // All events to be shown in the timeline
+
         if (dss !== undefined && dss.length > 0) {
             events_ds = {};
             // Just include the events from dss array data sources
@@ -167,21 +175,36 @@ var Events = {};
                     events_ds[data_source] = Events.scout[data_source];
                 }
             });
+        } else {
+            // Cache data in the default case (no filters)
+            if (Events.timeline_events_all_cache !== undefined) {
+                timeline_events = Events.timeline_events_all_cache;
+            }
         }
-        var timeline_events = []; // All events to be shown in the timeline
 
-        // First, create the common time series format: [date:[d1,d2, ...], event:[e1,e2, ...]]
-        $.each(events_ds, function(data_source, events){
-            fields = Object.keys(events);
-            $.each(events.date, function(i){
-                event = get_event(events, i, fields,data_source);
-                event[data_source] = 1;
-                event.timestamp = moment(event.date, "YYYY-MM-DD hh:mm:ss").fromNow();
-                timeline_events.push(event);
+         if (timeline_events.length === 0) {
+            // First, create the common time series format:
+            // [date:[d1,d2, ...], event:[e1,e2, ...]]
+            $.each(events_ds, function(data_source, events){
+                fields = Object.keys(events);
+                $.each(events.date, function(i){
+                    event = get_event(events, i, fields,data_source);
+                    event[data_source] = 1;
+                    event.timestamp = moment(event.date, "YYYY-MM-DD hh:mm:ss").fromNow();
+                    timeline_events.push(event);
+                });
             });
-        });
-        // Order events in time to build a common time line with the events from all data sources
-        timeline_events = events_sort(timeline_events);
+            // Order events in time to build a common time line
+            // with the events from all data sources
+            timeline_events = events_sort(timeline_events);
+            if (dss === undefined || dss.length === 0) {
+                Events.timeline_events_all_cache = timeline_events;
+            }
+         }
+
+        if (limit && limit <= timeline_events.length) {
+            timeline_events = timeline_events.slice(0, limit);
+        };
 
         return timeline_events;
     };

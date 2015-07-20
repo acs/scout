@@ -5,7 +5,8 @@
 var dashApp = angular.module('scoutApp', [
   'ngRoute',
   'datasourceControllers',
-  'ui.bootstrap'
+  'ui.bootstrap',
+  'infinite-scroll'
 ]);
 
 dashApp.config(['$routeProvider', function($routeProvider) {
