@@ -21,6 +21,8 @@ help:
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow mail reddit gmane meetup
+# Used the meetup cache data to avoid having a real meetup api key by default
+MEETUP_CACHE=data/meetup_groups_cache.json
 
 ifndef $(EVENTS_LIMIT)
 	EVENTS_LIMIT=10
@@ -73,8 +75,8 @@ reddit:
 gmane:
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
-meetup:
-	@echo "meetup_api_key file must include a Meetup API KEY\n" 
+meetup: $(MEETUP_CACHE)
+	@echo "meetup_api_key file must include a Meetup API KEY to refresh data\n"
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
 
 .PHONY: events

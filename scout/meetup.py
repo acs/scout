@@ -31,7 +31,6 @@ import requests
 
 
 from scout.datasource import DataSource
-from _mysql import NULL
 
 
 class Meetup(DataSource):
