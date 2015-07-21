@@ -60,7 +60,8 @@ datasourceControllers.controller('ScoutGlobalCtrl',
             $scope.filter_dss($scope.filter.dss, limit);
         }
         else {
-            $scope.scout_events = Events.get_timeline_events(undefined, limit);
+            $scope.scout_events =
+                Events.get_timeline_events(undefined, limit, $scope.filter_text);
         }
     };
 
@@ -113,30 +114,13 @@ datasourceControllers.controller('ScoutGlobalCtrl',
             }
         });
 
-        $scope.scout_events = Events.get_timeline_events(dss_to_include, limit);
+        $scope.scout_events =
+            Events.get_timeline_events(dss_to_include, limit, $scope.filter_text);
     };
 
-    $scope.filterBySubject = function(event) {
-        if ($scope.filter_text === undefined) {
-            return true;
-        }
-        var summary = event.summary.toLowerCase();
-        if (event.body === null) {
-            event.body = '';
-        }
-        var body = event.body.toLowerCase();
-        var author = event.author.toLowerCase();
-        var search = $scope.filter_text.toLowerCase();
-        var found = (summary.indexOf(search) !== -1) ||
-                    (author.indexOf(search) !== -1) ||
-                    (body.indexOf(search) !== -1);
-        return found;
-    };
-
-    $scope.show_all_events = function() {
-        // Show all events so search works in all the contents
-        $scope.scout_events = Events.get_timeline_events();
-    };
+    $scope.doSearch = function() {
+        $scope.paginateEvents();
+    }
 
     $scope.scout_start = function() {
         var scout_config = "/data/json/scout.json";

@@ -9,14 +9,14 @@
           </div>
         </div>
         <div class="col-sm-6 col-xs-12">
-          <form class="form-inline pull-right">
+          <form ng-submit="doSearch()" class="form-inline pull-right">
               <div class="form-group">
                   <input type="text" style="width: auto; float: left; margin-right: 2px;"
                       class="form-control input-sm"
-                      ng-model="filter_text" ng-minlength="3"
-                      placeholder="Filter by subject, body, author" autofocus1
-                      ng-focus="show_all_events()">
-                  <button type="button" class="btn btn-primary btn-sm">Search</button>
+                      ng-model="filter_text"
+                      placeholder="Filter by subject, body, author">
+                  <button type="button" ng-click="doSearch()"
+                    class="btn btn-primary btn-sm" >Search</button>
               </div>
           </form>
         </div>
@@ -27,7 +27,7 @@
         <ul class="list-group timeline" infinite-scroll="paginateEvents()"
             infinite-scroll-distance="0" >
             <li class="list-group-item"
-                ng-repeat="event in scout_events | filter:filterBySubject">
+                ng-repeat="event in scout_events">
                 <a class="avatar" href="{{event.url}}">
                 <i data-ng-show="event.stackoverflow" class="fa fa-stack-overflow fa-2x"></i>
                 <i data-ng-show="event.github" class="fa fa-github fa-2x"></i>

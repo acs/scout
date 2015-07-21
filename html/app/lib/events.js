@@ -163,7 +163,25 @@ var Events = {};
         return events;
     }
 
-    Events.get_timeline_events = function(dss, limit) {
+    filterBySubject = function(event, filter_text) {
+        if (filter_text === undefined) {
+            return true;
+        }
+        var summary = event.summary.toLowerCase();
+        if (event.body === null) {
+            event.body = '';
+        }
+        var body = event.body.toLowerCase();
+        var author = event.author.toLowerCase();
+        var search = filter_text.toLowerCase();
+        var found = (summary.indexOf(search) !== -1) ||
+                    (author.indexOf(search) !== -1) ||
+                    (body.indexOf(search) !== -1);
+        return found;
+    };
+
+
+    Events.get_timeline_events = function(dss, limit, search) {
         var events_ds = Events.scout;
         var timeline_events = []; // All events to be shown in the timeline
 
@@ -200,6 +218,18 @@ var Events = {};
             if (dss === undefined || dss.length === 0) {
                 Events.timeline_events_all_cache = timeline_events;
             }
+         }
+
+         if (search) {
+             var timeline_events_search = [];
+
+             // Keyword for filtering events
+             $.each(timeline_events, function(index, event){
+                 if (filterBySubject(event, search)) {
+                     timeline_events_search.push(event);
+                 }
+             });
+             timeline_events = timeline_events_search;
          }
 
         if (limit && limit <= timeline_events.length) {
