@@ -234,7 +234,7 @@ var Events = {};
 
         if (limit && limit <= timeline_events.length) {
             timeline_events = timeline_events.slice(0, limit);
-        };
+        }
 
         return timeline_events;
     };
