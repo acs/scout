@@ -29,6 +29,10 @@ RUN apt-get update && \
     apt-get clean && \
     find /var/lib/apt/lists -type f -delete
 
+# Google API lib for Python needed for accessing githubarchive bigdata API
+easy_install google-api-python-client
+chmod 644 /usr/local/lib/python2.7/dist-packages/httplib2-0.9.1-py2.7.egg/httplib2/cacerts.txt
+
 # MySQL install and config and db creation
 ADD configure-mysql.sh ${SCRIPTS_DIR}/configure-mysql.sh
 # preseed debconf to set the mysql root password
