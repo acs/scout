@@ -23,6 +23,8 @@ DBUSER=root
 BACKENDS=github stackoverflow mail reddit gmane meetup
 # Used the meetup cache data to avoid having a real meetup api key by default
 MEETUP_CACHE=data/meetup_groups_cache.json
+# Used the github cache data to avoid having a real Big Query auth by default
+GITHUB_CACHE=data/github_cache_month.201507.json
 
 ifndef $(EVENTS_LIMIT)
 	EVENTS_LIMIT=10
@@ -60,11 +62,14 @@ SCOUT=PYTHONPATH=. bin/scout --keyword $(KEYWORD)
 pep8:
 	pep8 --exclude=VizGrimoireJS,./html .
 
-github: $(GITHUB_CSV)
+# github: $(GITHUB_CSV)
+github: $(GITHUB_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
-stackoverflow: $(STACKOVERFLOW_CSV)
-	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
+# stackoverflow: $(STACKOVERFLOW_CSV)
+stackoverflow:
+#	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
+	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 mail: $(MAIL_CSV)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^

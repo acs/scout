@@ -21,6 +21,7 @@ VizGrimoireJS
 bower_components
 node_modules
 meetup_api_key
+bigquery_credentials.dat
 
 # Installer logs
 pip-log.txt

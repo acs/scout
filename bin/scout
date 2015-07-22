@@ -31,7 +31,7 @@ import sys
 from optparse import OptionParser
 
 from scout.database import Database
-from scout.github import Github
+from scout.github_live import Github
 from scout.gmane import Gmane
 from scout.mail import Mail
 from scout.meetup import Meetup
