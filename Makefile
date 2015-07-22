@@ -66,6 +66,10 @@ pep8:
 github: $(GITHUB_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 
+# Get the data fresh from githubarchive
+github_live: 
+	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b github
+
 # stackoverflow: $(STACKOVERFLOW_CSV)
 stackoverflow:
 #	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
