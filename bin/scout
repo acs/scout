@@ -36,7 +36,7 @@ from scout.gmane import Gmane
 from scout.mail import Mail
 from scout.meetup import Meetup
 from scout.reddit import Reddit
-from scout.stackoverflow import Stackoverflow
+from scout.stackoverflow_live import Stackoverflow
 from scout.utils import createJSON
 
 def read_options():
