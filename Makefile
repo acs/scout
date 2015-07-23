@@ -68,7 +68,8 @@ meetup: $(MEETUP_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
 
 .PHONY: events
-events: cleandb $(BACKENDS)
+# events: cleandb $(BACKENDS)
+events: $(BACKENDS)
 	$(SCOUT) --events -u root -d scout
 
 events_limit: events
