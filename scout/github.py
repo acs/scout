@@ -121,7 +121,8 @@ class Github(DataSource):
 
             return events
 
-        cache_file = "data/github_cache_"+get_current_month()+".json"
+        cache_file = "data/github_cache_"+get_current_month()
+        cache_file += "-"+self.keyword+".json"
 
         if not os.path.isfile(cache_file):
             data = get_events()

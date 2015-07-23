@@ -77,7 +77,7 @@ class Meetup(DataSource):
         # url += "&page=20"
 
         # the cache file includes all groups and the events
-        cache_file = "data/meetup_groups_cache.json"
+        cache_file = "data/meetup_groups_cache-"+self.keyword+".json"
 
         if not os.path.isfile(cache_file):
             events = {}

@@ -73,7 +73,7 @@ class Reddit(DataSource):
         url += "&sort=new"
         url += "&limit="+str(limit)
 
-        cache_file = "data/reddit_cache.json"
+        cache_file = "data/reddit_cache-"+self.keyword+".json"
 
         if not os.path.isfile(cache_file):
             import requests

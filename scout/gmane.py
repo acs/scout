@@ -72,7 +72,7 @@ class Gmane(DataSource):
         url += "&HITSPERPAGE="+str(limit)
         article_url = 'http://article.gmane.org/'
 
-        cache_file = "data/gmane_cache.csv"
+        cache_file = "data/gmane_cache-"+self.keyword+".csv"
 
         if not os.path.isfile(cache_file):
             import requests

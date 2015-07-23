@@ -82,14 +82,14 @@ class Stackoverflow(DataSource):
         url_title = url + "&intitle="+self.keyword
         url_tag = url + "&tagged="+self.keyword
 
-        cache_file = "data/stackoverflow_cache.json"
+        cache_file = "data/stackoverflow_cache-"+self.keyword+".json"
 
         if not os.path.isfile(cache_file):
             import requests
             r = requests.get(url_title, verify=False,
                              headers={'user-agent': 'scout'})
             data = r.json()
-            #r = requests.get(url_tag, verify=False,
+            # r = requests.get(url_tag, verify=False,
             #                 headers={'user-agent': 'scout'})
             # z = x.copy()
             # z.update(y)
