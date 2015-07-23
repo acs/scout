@@ -21,6 +21,8 @@ help:
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow reddit gmane meetup
+# In order to generate fresh events just comments the CACHE lines and configure
+# access grants for meetup and github
 # Used the meetup cache data to avoid having a real meetup api key by default
 MEETUP_CACHE=data/meetup_groups_cache.json
 # Used the github cache data to avoid having a real Big Query auth by default
