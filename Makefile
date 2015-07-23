@@ -20,7 +20,7 @@ help:
 
 DBNAME=scout
 DBUSER=root
-BACKENDS=github stackoverflow mail reddit gmane meetup
+BACKENDS=github stackoverflow reddit gmane meetup
 # Used the meetup cache data to avoid having a real meetup api key by default
 MEETUP_CACHE=data/meetup_groups_cache.json
 # Used the github cache data to avoid having a real Big Query auth by default
@@ -33,19 +33,6 @@ endif
 ifndef $(KEYWORD)
 	KEYWORD=centos
 endif
-
-# TO BE REMOVED 
-ifeq ($(KEYWORD),centos)
-	GITHUB_CSV=data/GithubReposCentOS-P1.csv
-	STACKOVERFLOW_CSV=data/StackOverFlowCentOS-P1.csv
-	MAIL_CSV=data/MailmanOpenStackCentOS-P1.csv
-endif
-ifeq ($(KEYWORD),coreclr)
-	GITHUB_CSV=data/GithubReposCoreCLR.csv
-	STACKOVERFLOW_CSV=data/StackOverFlowCoreCLR.csv
-	MAIL_CSV=data/MailmanOpenStackCoreCLR.csv
-endif
-# END TO BE REMOVED 
 
 SCOUT=PYTHONPATH=. bin/scout --keyword $(KEYWORD)
 
@@ -62,21 +49,11 @@ SCOUT=PYTHONPATH=. bin/scout --keyword $(KEYWORD)
 pep8:
 	pep8 --exclude=VizGrimoireJS,./html .
 
-# github: $(GITHUB_CSV)
 github: $(GITHUB_CACHE)
-	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
-
-# Get the data fresh from githubarchive
-github_live: 
-	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b github
-
-# stackoverflow: $(STACKOVERFLOW_CSV)
-stackoverflow:
-#	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
-mail: $(MAIL_CSV)
-	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ -f $^
+stackoverflow:
+	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 reddit:
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@

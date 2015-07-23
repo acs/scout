@@ -23,6 +23,11 @@
 #
 #
 
+from datetime import datetime
+import json
+import logging
+import os
+
 from scout.datasource import DataSource
 
 
@@ -33,19 +38,18 @@ class Stackoverflow(DataSource):
         """ The name of the fields are the same than CSV from Data Explorer """
         query = "CREATE TABLE IF NOT EXISTS stackoverflow_events (" + \
                 "id int(11) NOT NULL AUTO_INCREMENT," + \
-                "Post_Link VARCHAR(255) NULL," + \
-                "DisplayName VARCHAR(255) NULL," + \
+                "question_id VARCHAR(255) NOT NULL," + \
+                "url VARCHAR(255) NULL," + \
+                "author VARCHAR(255) NULL," + \
+                "author_url VARCHAR(255) NULL," + \
                 "title VARCHAR(255) NULL," + \
                 "tags TEXT NULL," + \
-                "CreationDate DATETIME NOT NULL," + \
-                "LastActivityDate DATETIME," + \
-                "LastEditDate DATETIME," + \
-                "ClosedDate DATETIME," + \
-                "PostTypeId int(11) NOT NULL," + \
-                "AnswerCount int(11)," + \
-                "ViewCount int(11)," + \
-                "Score int(11)," + \
-                "User_Link VARCHAR(255) NULL," + \
+                "creation_date DATETIME NOT NULL," + \
+                "last_activity_date DATETIME," + \
+                "answer_count int(11)," + \
+                "view_count int(11)," + \
+                "score int(11)," + \
+                "owner_link VARCHAR(255) NULL," + \
                 "body TEXT," + \
                 "PRIMARY KEY (id)" + \
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8"
@@ -61,34 +65,92 @@ class Stackoverflow(DataSource):
     def get_indexes(self):
         return (self.TableIndex('sotitle', 'stackoverflow_events', 'title'),
                 self.TableIndex('socreation', 'stackoverflow_events',
-                                'CreationDate'))
+                                'creation_date'))
 
-    def download_events(self, events_file):
-        return self._load_csv_file(events_file, self.db, "stackoverflow")
+    def download_events(self):
+        # https://api.stackexchange.com/2.2/search?
+        # order=desc&sort=creation&intitle=centos
+        # &site=stackoverflow&pagesize=100
 
-    def insert_event(self, event, fields):
+        limit = 100  # max 100
+        url = "https://api.stackexchange.com/2.2/search?"
+        url += "&order=desc&sort=creation"
+        url += "&site=stackoverflow"
+        url += "&pagesize="+str(limit)
+        url += "&filter=withbody"
+
+        url_title = url + "&intitle="+self.keyword
+        url_tag = url + "&tagged="+self.keyword
+
+        cache_file = "data/stackoverflow_cache.json"
+
+        if not os.path.isfile(cache_file):
+            import requests
+            r = requests.get(url_title, verify=False,
+                             headers={'user-agent': 'scout'})
+            data = r.json()
+            #r = requests.get(url_tag, verify=False,
+            #                 headers={'user-agent': 'scout'})
+            # z = x.copy()
+            # z.update(y)
+            with open(cache_file, 'w') as f:
+                f.write(json.dumps(data))
+        else:
+            with open(cache_file) as f:
+                data = json.loads(f.read())
+
+        for question in data['items']:
+            # [u'body', u'is_answered', u'view_count', u'tags',
+            # u'last_activity_date', u'answer_count', u'creation_date',
+            # u'score', u'link', u'owner', u'title', u'question_id']
+            question_id = question['question_id']
+            title = question['title']
+            tags = ",".join(question['tags'])
+            creation_date = question['creation_date']
+            creation_date = datetime.fromtimestamp(question['creation_date'])
+            creation_date = creation_date.strftime('%Y-%m-%d %H:%M:%S')
+            body = question['body']
+            url = question['link']
+            author = question['owner']['display_name']
+            author_url = question['owner']['link']
+            score = question['score']
+            view_count = question['view_count']
+            answer_count = question['answer_count']
+            self.insert_event(question_id, title, tags, creation_date, body,
+                              url, author, author_url, score, view_count,
+                              answer_count)
+
+    def insert_event(self, question_id, title, tags, creation_date, body,
+                     url, author, author_url, score, view_count, answer_count):
+        fields = ['question_id', 'title', 'tags', 'creation_date', 'url']
+        fields += ['body', 'author', 'author_url']
+        fields += ['score', 'view_count', 'answer_count']
         query = "INSERT INTO stackoverflow_events ("
         for field in fields:
-            query += field.replace(" ", "_") + ","
+            query += field + ","
         query = query[:-1]
         query += ") "
         query += "VALUES ("
+        body = body.replace("'", "\\'")
+        title = title.replace("'", "\\'")
+        values = "','".join([str(question_id), title, tags, creation_date,
+                             url, body, author, author_url, str(score),
+                             str(view_count), str(view_count)
+                             ])
+
+        values = "'"+values+"'"
         # Convert to Unicode to support unicode values
-        # query = u' '.join((query, event, ")")).encode('utf-8')
-        query = query + event + ")"
+        query = u' '.join((query, values, ")")).encode('utf-8')
+
         self.db.dsquery.ExecuteQuery(query)
         self.db.conn.commit()
 
     def get_events(self):
         table = "stackoverflow_events"
-        url_posts = "http://stackoverflow.com/questions/"
-        url_user = "http://stackoverflow.com/users/"
         # Common fields for all events: date, summmary, url
-        q = "SELECT CONCAT('"+url_posts+"',Post_Link) as url, " + \
-            "CreationDate as date, title as summary, "
-        q += "ViewCount as views, Score as score, PostTypeId as type, body, "
-        q += "CONCAT('"+url_user+"',User_Link) as author_url, "
-        q += "DisplayName as author"
+        q = "SELECT url, creation_date as date, title as summary, "
+        q += "view_count as views, score, answer_count, "
+        q += "body, author_url, author"
         q += " FROM " + table
         q += " ORDER BY date DESC "
         if self.limit is not None:

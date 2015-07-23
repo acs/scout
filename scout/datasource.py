@@ -65,13 +65,11 @@ class DataSource(object):
 
         raise NotImplementedError
 
-    def download_events(self, events_file=None):
+    def download_events(self):
         """Download the events from the remote data source
 
         Normally using http and in JSON format, the data is read from
-        the upstream data source and it is stored in the database.
-
-        If events_file is used, the events will come from it."""
+        the upstream data source and it is stored in the database. """
 
         raise NotImplementedError
 
@@ -106,65 +104,3 @@ class DataSource(object):
                 self.db.conn.commit()
             except:
                 logging.warning("Warning: Dropping %s index" % idx.name)
-
-    def _load_csv_file(self, filepath, db, backend):
-        """Load a CSV events file into the database (currently MySQL) """
-        import csv
-        if backend not in ("stackoverflow", "github", "mail"):
-            raise ("Backend not supported: " + backend)
-        try:
-            # mail csv file is ASCII. The rest is UTF8
-            if backend in ["mail", "stackoverflow"]:
-                infile = open(filepath, 'rt')
-            elif backend in ["github"]:
-                import codecs
-                infile = codecs.open(filepath, "rt", "utf-8")
-
-        except EnvironmentError as e:
-            logging.error("Cannot open %s for reading: %s" % (filepath, e))
-            raise
-
-        count_events = 0
-        count_events_new = 0
-        # last_date = db.get_last_date(channel_id)
-
-        if backend == "github":
-            # Don't use CSV module for this format. Not easy to parse with it.
-            pass
-        elif backend == "mail":
-            data = csv.reader(infile, delimiter=',', quotechar='"',
-                              escapechar='\\')
-        else:
-            data = csv.reader(infile, delimiter=',', quotechar='"')
-
-        try:
-            fields = None
-            if backend in ["mail", "stackoverflow"]:
-                for event_data in data:
-                    if backend != "mail":
-                        # In mail CSV we don't have fields in the first row
-                        if fields is None:
-                            # first row are the fields names
-                            fields = event_data
-                            continue
-                    # TODO: Loosing " inside the body. To be fixed. Quick hack.
-                    event_data = [fevent.replace('"', '')
-                                  for fevent in event_data]
-                    event_data_str = '"' + '","'.join(event_data) + '"'
-                    self.insert_event(event_data_str, fields)
-                count_events_new += 1
-            elif backend in ["github"]:
-                lines = infile.readlines()
-                for event_data in lines:
-                    if fields is None:
-                        # first row are the fields names
-                        fields = event_data[:-1].split(",")
-                        continue
-                    self.insert_event(event_data, fields)
-
-        except Exception as e:
-            logging.error("Error parsing %s file: %s" % (filepath, e))
-            raise
-        finally:
-            infile.close()
-        return count_events, count_events_new

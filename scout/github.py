@@ -23,7 +23,17 @@
 #
 #
 
+import httplib2
 import json
+import logging
+import os
+
+from apiclient.discovery import build
+
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.file import Storage
+from oauth2client import tools
+
 from scout.datasource import DataSource
 
 
@@ -58,15 +68,80 @@ class Github(DataSource):
         return (self.TableIndex('ghrepo', 'github_events', 'repo_name'),
                 self.TableIndex('ghcreation', 'github_events', 'created_at'))
 
-    def download_events(self, events_file):
-        return self._load_csv_file(events_file, self.db, "github")
+    def download_events(self):
+        # Uses BigQuery API to get the data
 
-    def insert_event(self, event, fields):
+        # Fields gathered from github archive
+        fields = "type,repo_name,repo_url,created_at,actor_url,payload"
+
+        def get_current_month():
+            return "month.201507"
+
+        def get_events():
+            # Project number with BigQuery access to github archive
+            # We get the events for the last month
+            # https://www.githubarchive.org/#bigquery
+            PROJECT_NUMBER = '809235583986'
+
+            # This client_secrets.json should be created as described in
+            # https://cloud.google.com/bigquery/bigquery-api-quickstart
+            scope = 'https://www.googleapis.com/auth/bigquery'
+            FLOW = flow_from_clientsecrets('client_secrets.json', scope)
+
+            # Once all auth process is completed this file is created and it is
+            # not needed anymore
+            storage = Storage('bigquery_credentials.dat')
+            credentials = storage.get()
+
+            if credentials is None or credentials.invalid:
+                # Run oauth2 flow with default arguments.
+                credentials = tools.run_flow(FLOW, storage,
+                                             tools.argparser.parse_args([]))
+
+            http = httplib2.Http()
+            http = credentials.authorize(http)
+
+            bigquery_service = build('bigquery', 'v2', http=http)
+
+            current_month = get_current_month()
+            # keyword_1 = "CoreCLR"
+            query = "SELECT " + fields + " "
+            query += "FROM [githubarchive:" + current_month + "] "
+            query += "WHERE repo_name like '%"+self.keyword+"%' "
+            # query += "    OR repo_name like '%"+keyword_1+"%');"
+
+            query_data = {'query': query}
+            query_request = bigquery_service.jobs()
+
+            # Make a call to the BigQuery API
+            logging.info("Downloading events from githubarchive ...")
+            events = query_request.query(projectId=PROJECT_NUMBER,
+                                         body=query_data).execute()
+            logging.info("Events received ... processing ...")
+
+            return events
+
+        cache_file = "data/github_cache_"+get_current_month()+".json"
+
+        if not os.path.isfile(cache_file):
+            data = get_events()
+            with open(cache_file, 'w') as f:
+                f.write(json.dumps(data))
+        else:
+            with open(cache_file) as f:
+                data = json.loads(f.read())
+
+        for row in data['rows']:
+            event_data = []
+            for value in row['f']:
+                event_data.append(value['v'])
+            self.insert_event(event_data, fields)
+
+    def insert_event(self, event_data, fields):
         from datetime import datetime
         # type,repo_name,repo_url,created_at,actor_url,payload
         status = None  # for pull requests, issues ...
         body = ''  # body data for the event
-        event_data = event[:-1].split(",", 5)
         timestamp = int(float(event_data[3]))
         # url  https://api.github.com/repos/mahiso/ArduinoCentOS7
         # should be changed to https://github.com/mahiso/ArduinoCentOS7
@@ -76,9 +151,9 @@ class Github(DataSource):
         # author should be changed to https://github.com/user_id
         event_data[4] = event_data[4].replace("api.", "").replace("users/", "")
         # Work with payload
-        payload = event_data[5][:-1][1:]
-        payload = payload.replace('""', '"')
-        payload = json.loads(payload)
+        # payload = event_data[5][:-1][1:]
+        # payload = payload.replace('""', '"')
+        payload = json.loads(event_data[5])
         all_types = ["PushEvent", "CreateEvent", "IssuesEvent", "WatchEvent",
                      "ForkEvent", "DeleteEvent",
                      "PullRequestEvent", "IssueCommentEvent", "GollumEvent",
@@ -104,9 +179,7 @@ class Github(DataSource):
         event = "','".join(event_data)
         event = "'" + event + "'"
         query = "INSERT INTO github_events ("
-        for field in fields:
-            query += field.replace(" ", "_") + ","
-        query = query[:-1]  # remove last ,
+        query += fields
         # Add body depending in the type of event
         if body is not None:
             query += ", body"

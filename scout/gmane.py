@@ -62,7 +62,7 @@ class Gmane(DataSource):
         return (self.TableIndex('gmanesubject', 'gmane_events', 'title'),
                 self.TableIndex('gmanecreation', 'gmane_events', 'created'))
 
-    def download_events(self, events_file):
+    def download_events(self):
 
         # http://search.gmane.org/nov.php?query=centos
         # &sort=date&HITSPERPAGE=999

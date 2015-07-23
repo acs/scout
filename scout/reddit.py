@@ -63,7 +63,7 @@ class Reddit(DataSource):
         return (self.TableIndex('redditsubject', 'reddit_events', 'title'),
                 self.TableIndex('redditcreation', 'reddit_events', 'created'))
 
-    def download_events(self, events_file):
+    def download_events(self):
         # Right now only 100 events are gathered. No pagination done.
         # Around two weeks in centos
 

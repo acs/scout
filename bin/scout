@@ -31,26 +31,16 @@ import sys
 from optparse import OptionParser
 
 from scout.database import Database
-from scout.github_live import Github
+from scout.github import Github
 from scout.gmane import Gmane
-from scout.mail import Mail
 from scout.meetup import Meetup
 from scout.reddit import Reddit
-from scout.stackoverflow_live import Stackoverflow
+from scout.stackoverflow import Stackoverflow
 from scout.utils import createJSON
 
 def read_options():
     parser = OptionParser(usage="usage: %prog [options]",
                           version="%prog 0.1")
-    parser.add_option("--dir",
-                      action="store",
-                      dest="data_dir",
-                      default="irc",
-                      help="Directory with all IRC logs")
-    parser.add_option("-f", "--file",
-                      action="store",
-                      dest="events_file",
-                      help="File with the events to be loaded")
     parser.add_option("-b", "--backend",
                       action="store",
                       dest="backend",
@@ -116,8 +106,6 @@ def get_datasource(backend, db, keyword, limit = None, key = None):
         ds = Stackoverflow(db, keyword, limit)
     elif backend == "github":
         ds = Github(db, keyword, limit)
-    elif backend == "mail":
-        ds = Mail(db, keyword, limit)
     elif backend == "reddit":
         ds = Reddit(db, keyword, limit)
     elif backend == "gmane":
@@ -132,7 +120,7 @@ def get_datasource(backend, db, keyword, limit = None, key = None):
 
 def create_events(backend, db, keyword, limit = None, key = None):
     config_json = "scout.json"  # File with data sources available and others
-    backends = ["stackoverflow", "github", "mail", "reddit", "gmane", "meetup"]
+    backends = ["stackoverflow", "github", "reddit", "gmane", "meetup"]
     events = {}
 
     if backend is not None:
@@ -184,7 +172,7 @@ if __name__ == '__main__':
         create_tables(opts.backend, db, opts.keyword)
         ds = get_datasource(opts.backend, db, opts.keyword, 
                             opts.limit, opts.key)
-        ds.download_events(opts.events_file)
+        ds.download_events()
 
     db.close_database()
     sys.exit(0)

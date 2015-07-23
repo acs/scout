@@ -64,7 +64,7 @@ class Meetup(DataSource):
         return (self.TableIndex('meetupsubject', 'meetup_events', 'title'),
                 self.TableIndex('meetupcreation', 'meetup_events', 'created'))
 
-    def download_events(self, events_file):
+    def download_events(self):
         # Get the groups for teh keyword selected
         # Get as events all activities in this groups
 
