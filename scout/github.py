@@ -107,10 +107,17 @@ class Github(DataSource):
             # keyword_1 = "CoreCLR"
             query = "SELECT " + fields + " "
             query += "FROM [githubarchive:" + current_month + "] "
-            query += "WHERE repo_name like '%"+self.keyword+"%' "
-            # query += "    OR repo_name like '%"+keyword_1+"%');"
-
+            query += "WHERE "
+            if len(self.keywords) == 1:
+                query += "repo_name like '%"+self.keywords[0]+"%' "
+            else:
+                query += "("
+                for keyword in self.keywords:
+                    query += " repo_name like '%"+keyword+"%' OR "
+                query = query[:-3]  # remove last OR
+                query += ");"
             query_data = {'query': query}
+
             query_request = bigquery_service.jobs()
 
             # Make a call to the BigQuery API
@@ -122,7 +129,7 @@ class Github(DataSource):
             return events
 
         cache_file = "data/github_cache_"+get_current_month()
-        cache_file += "-"+self.keyword+".json"
+        cache_file += "-"+",".join(self.keywords)+".json"
 
         if not os.path.isfile(cache_file):
             data = get_events()

@@ -25,8 +25,8 @@
 
 from datetime import datetime
 import json
-import logging
 import os
+import requests
 
 from scout.datasource import DataSource
 
@@ -79,27 +79,29 @@ class Stackoverflow(DataSource):
         url += "&pagesize="+str(limit)
         url += "&filter=withbody"
 
-        url_title = url + "&intitle="+self.keyword
-        url_tag = url + "&tagged="+self.keyword
-
-        cache_file = "data/stackoverflow_cache-"+self.keyword+".json"
+        cache_file = "data/stackoverflow_cache-"
+        cache_file += ",".join(self.keywords)+".json"
 
         if not os.path.isfile(cache_file):
-            import requests
-            r = requests.get(url_title, verify=False,
-                             headers={'user-agent': 'scout'})
-            data = r.json()
+            questions = []
+            for keyword in self.keywords:
+                url_title = url + "&intitle="+keyword
+                r = requests.get(url_title, verify=False,
+                                 headers={'user-agent': 'scout'})
+                questions += r.json()['items']
+
+            # url_tag = url + "&tagged="+self.keyword
             # r = requests.get(url_tag, verify=False,
             #                 headers={'user-agent': 'scout'})
             # z = x.copy()
             # z.update(y)
             with open(cache_file, 'w') as f:
-                f.write(json.dumps(data))
+                f.write(json.dumps(questions))
         else:
             with open(cache_file) as f:
-                data = json.loads(f.read())
+                questions = json.loads(f.read())
 
-        for question in data['items']:
+        for question in questions:
             # [u'body', u'is_answered', u'view_count', u'tags',
             # u'last_activity_date', u'answer_count', u'creation_date',
             # u'score', u'link', u'owner', u'title', u'question_id']

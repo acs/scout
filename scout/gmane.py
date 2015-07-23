@@ -65,14 +65,15 @@ class Gmane(DataSource):
     def download_events(self):
 
         # http://search.gmane.org/nov.php?query=centos
-        # &sort=date&HITSPERPAGE=999
+        # &sort=date&HITSPERPAGE=999&DEFAULTOP=or
         limit = 100  # max 999
-        url = "http://search.gmane.org/nov.php?query="+self.keyword
+        url = "http://search.gmane.org/nov.php?query="+",".join(self.keywords)
+        url += "&DEFAULTOP=or"
         url += "&sort=date"
         url += "&HITSPERPAGE="+str(limit)
         article_url = 'http://article.gmane.org/'
 
-        cache_file = "data/gmane_cache-"+self.keyword+".csv"
+        cache_file = "data/gmane_cache-"+",".join(self.keywords)+".csv"
 
         if not os.path.isfile(cache_file):
             import requests
@@ -99,7 +100,7 @@ class Gmane(DataSource):
                 # http://article.gmane.org/gmane.comp.apache.tika.devel
                 # /16806/match=centos
                 url = article_url+gmane_id.replace(":", "/")
-                url += "/match=" + self.keyword
+                url += "/match=" + "+".join(self.keywords)
                 author = fields[2]
                 body = ''  # NOV output does not include body
                 self.insert_event(gmane_id, title, created, url, author, body)

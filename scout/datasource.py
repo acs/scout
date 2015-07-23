@@ -35,15 +35,15 @@ class DataSource(object):
     defined in this class in order to be integrated with Scout.
     """
 
-    def __init__(self, db, keyword, limit=None, key=None):
+    def __init__(self, db, keywords, limit=None, key=None):
         """
         :param db: scout.database object
-        :param keyword: keyword to be searched in the data source
+        :param keywords: keywords to be searched in the data source
         :param limit: Limit the number of events to be generated
         :param key: API key to be used for auth
         """
         self.db = db
-        self.keyword = keyword
+        self.keywords = keywords
         self.limit = limit
         self.key = key
         # user or creating indexes

@@ -1,14 +1,14 @@
 <!-- <div class="container-fluid">-->
     <div class="row" data-ng-show="scout_events != undefined">
-        <div class="col-sm-6 col-xs-12">
-          <span><small>Events found for <i>"{{keyword}}"</i>:</small></span>
+        <div class="col-sm-8 col-xs-12">
+          <span><small>Events found for <i>"{{keywords.join(' or ')}}"</i>:</small></span>
           <div class="btn-group btn-group-sm">
             <label ng-repeat="(ds, ds_events) in scout_events_raw"
                 class="btn btn-default" btn-checkbox ng-model="$parent.filter.dss[ds]">
                 <b>{{ds}}</b>:{{ds_events.date.length}}</label>
           </div>
         </div>
-        <div class="col-sm-6 col-xs-12">
+        <div class="col-sm-4 col-xs-12">
           <form ng-submit="doSearch()" class="form-inline pull-right">
               <div class="form-group">
                   <input type="text" style="width: auto; float: left; margin-right: 2px;"

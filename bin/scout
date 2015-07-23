@@ -65,11 +65,11 @@ def read_options():
                       dest="debug",
                       default=False,
                       help="Debug mode")
-    parser.add_option("-k", "--keyword",
+    parser.add_option("-k", "--keywords",
                       action="store",
-                      dest="keyword",
+                      dest="keywords",
                       default="centos",
-                      help="keyword to use to search events")
+                      help="keywords to use to search events")
     parser.add_option("--key",
                       action="store",
                       dest="key",
@@ -99,29 +99,30 @@ def read_options():
     return opts
 
 
-def get_datasource(backend, db, keyword, limit = None, key = None):
+def get_datasource(backend, db, keywords, limit = None, key = None):
     ds = None
 
     if backend == "stackoverflow":
-        ds = Stackoverflow(db, keyword, limit)
+        ds = Stackoverflow(db, keywords, limit)
     elif backend == "github":
-        ds = Github(db, keyword, limit)
+        ds = Github(db, keywords, limit)
     elif backend == "reddit":
-        ds = Reddit(db, keyword, limit)
+        ds = Reddit(db, keywords, limit)
     elif backend == "gmane":
-        ds = Gmane(db, keyword, limit)
+        ds = Gmane(db, keywords, limit)
     elif backend == "meetup":
-        ds = Meetup(db, keyword, limit, key)
+        ds = Meetup(db, keywords, limit, key)
     else:
         logging.error(backend, " not supported")
         raise
 
     return ds
 
-def create_events(backend, db, keyword, limit = None, key = None):
+def create_events(backend, db, keywords, limit = None, key = None):
     config_json = "scout.json"  # File with data sources available and others
     backends = ["stackoverflow", "github", "reddit", "gmane", "meetup"]
     events = {}
+    keywords_file = ",".join(keywords)
 
     if backend is not None:
         backends = [backend]
@@ -130,31 +131,37 @@ def create_events(backend, db, keyword, limit = None, key = None):
         logging.error(backend + " not supported")
 
     for backend in backends:
-        events[backend] = get_datasource(backend, db, keyword, limit, key).get_events()
+        events[backend] = get_datasource(backend, db, keywords, limit, key).get_events()
 
     res = {"events":events,
-           "keyword":keyword}
+           "keywords":keywords}
 
     # Create JSON file with all events
-    filename = keyword+".json"
+    filename = keywords_file+".json"
     if limit is not None:
-        filename = keyword+"-"+limit+".json"
+        filename = keywords_file+"-"+limit+".json"
     createJSON(res, filename)
 
     # Create a JSON file with event per data source
     for backend in events:
         res = {"events":{backend:events[backend]},
-               "keyword":keyword}
-        filename = keyword+"-"+backend+".json"
+               "keywords":keywords}
+        filename = keywords_file+"-"+backend+".json"
         if limit is not None:
-            filename = keyword+"-"+backend+"-"+limit+".json"
+            filename = keywords_file+"-"+backend+"-"+limit+".json"
         createJSON(res, filename)
 
     # Create JSON file with backends available and other config info
     res = {"backends":backends,
-           "keyword":keyword,
+           "keywords":keywords,
            "limit":limit}
     createJSON(res, config_json)
+
+def download_events(backend, db, keywords, limit, key):
+    create_tables(backend, db, keywords)
+    ds = get_datasource(backend, db, keywords, limit, key)
+    ds.download_events()
+
 
 def create_tables(backend, db, keyword):
     return get_datasource(backend, db, keyword).create_tables()
@@ -166,13 +173,13 @@ if __name__ == '__main__':
     db = Database(opts.dbuser, opts.dbpassword, opts.dbname)
     db.open_database()
 
+    keywords = opts.keywords.split(",")
+
     if opts.events:
-        create_events(opts.backend, db, opts.keyword, opts.limit, opts.key)
+        create_events(opts.backend, db, keywords, opts.limit, opts.key)
+
     else:
-        create_tables(opts.backend, db, opts.keyword)
-        ds = get_datasource(opts.backend, db, opts.keyword, 
-                            opts.limit, opts.key)
-        ds.download_events()
+        download_events(opts.backend, db, keywords, opts.limit, opts.key)
 
     db.close_database()
     sys.exit(0)

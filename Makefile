@@ -21,22 +21,23 @@ help:
 DBNAME=scout
 DBUSER=root
 BACKENDS=github stackoverflow reddit gmane meetup
+
+ifndef $(KEYWORDS)
+	KEYWORDS=centos
+endif
+
 # In order to generate fresh events just comments the CACHE lines and configure
 # access grants for meetup and github
 # Used the meetup cache data to avoid having a real meetup api key by default
-MEETUP_CACHE=data/meetup_groups_cache.json
+MEETUP_CACHE=data/meetup_groups_cache-$(KEYWORDS).json
 # Used the github cache data to avoid having a real Big Query auth by default
-GITHUB_CACHE=data/github_cache_month.201507.json
+GITHUB_CACHE=data/github_cache_month.201507-$(KEYWORDS).json
 
 ifndef $(EVENTS_LIMIT)
 	EVENTS_LIMIT=10
 endif
 
-ifndef $(KEYWORD)
-	KEYWORD=centos
-endif
-
-SCOUT=PYTHONPATH=. bin/scout --keyword $(KEYWORD)
+SCOUT=PYTHONPATH=. bin/scout --keywords $(KEYWORDS)
 
 #
 # PYTHON
@@ -97,7 +98,7 @@ deploy: scout.json
 	cp -a html/bower_components $(DEPLOY)/app
 	mkdir -p $(DEPLOY)/app/data/json
 	cp $^ $(DEPLOY)/app/data/json
-	cp $(KEYWORD)*.json $(DEPLOY)/app/data/json
+	cp *.json $(DEPLOY)/app/data/json
 
 all: jshint pep8 cleandb $(BACKENDS) events events_limit deploy
 
@@ -106,4 +107,4 @@ cleandb:
 
 .PHONY: clean
 clean: cleandb
-	rm -rf $(KEYWORD).json $(KEYWORD)-*.json scout.json data/*.csv data/*.json data/*_cache.json
+	rm -rf *.json data/*.csv data/*.json data/*_cache.json

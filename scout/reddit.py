@@ -67,13 +67,14 @@ class Reddit(DataSource):
         # Right now only 100 events are gathered. No pagination done.
         # Around two weeks in centos
 
-        # https://www.reddit.com/search.json?q=centos&sort=new
+        # https://www.reddit.com/search.json?q=centos%20OR%20coreclr&sort=new
+        query = " OR ".join(self.keywords)
         limit = 100  # max 100
-        url = "https://www.reddit.com/search.json?q="+self.keyword
+        url = "https://www.reddit.com/search.json?q="+query
         url += "&sort=new"
         url += "&limit="+str(limit)
 
-        cache_file = "data/reddit_cache-"+self.keyword+".json"
+        cache_file = "data/reddit_cache-"+",".join(self.keywords)+".json"
 
         if not os.path.isfile(cache_file):
             import requests

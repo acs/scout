@@ -65,25 +65,30 @@ class Meetup(DataSource):
                 self.TableIndex('meetupcreation', 'meetup_events', 'created'))
 
     def download_events(self):
-        # Get the groups for teh keyword selected
+        # Get the groups for the keywords selected
         # Get as events all activities in this groups
 
         # https://api.meetup.com/find/groups?&sign=true&photo-host=public
         # &text=centos&radius=global&page=20
         url = "https://api.meetup.com"
         url += "/find/groups"
-        url += "?&text="+self.keyword+"&radius=global"
+        url += "?radius=global"
         url += "&key="+self.key
         # url += "&page=20"
 
         # the cache file includes all groups and the events
-        cache_file = "data/meetup_groups_cache-"+self.keyword+".json"
+        cache_file = "data/meetup_groups_cache-"
+        cache_file += ",".join(self.keywords)+".json"
 
         if not os.path.isfile(cache_file):
-            events = {}
-            r = requests.get(url, verify=False,
-                             headers={'user-agent': 'scout'})
-            groups = r.json()
+            groups = []
+            # We need a specific query for each keyword and then join results
+            for keyword in self.keywords:
+                events = {}
+                kurl = url + "&text="+keyword
+                r = requests.get(kurl, verify=False,
+                                 headers={'user-agent': 'scout'})
+                groups += r.json()
             with open(cache_file, 'w') as f:
                 # Now we need to get all events for groups
                 for group in groups:
@@ -97,7 +102,7 @@ class Meetup(DataSource):
                     r = requests.get(url, verify=False,
                                      headers={'user-agent': 'scout'})
                     events_data = r.json()
-                    print (events_data)
+                    # print (events_data)
                     events[group['name']] = events_data
                 f.write(json.dumps({"groups": groups, "events": events}))
         else:

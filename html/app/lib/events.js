@@ -35,41 +35,6 @@ var Events = {};
         Events.timeline_events_all_cache = undefined;  // clean events caches
     };
 
-    Events.data_ready = function(callback) {
-        data_callbacks.push(callback);
-    };
-
-    Events.loadScoutEventsData = function(cb) {
-        var json_file = "data/json/scout.json";
-        // The JSON file could be passed as param
-        if (document.URL.split('?').length > 1) {
-            param = document.URL.split('?')[1].split("&")[0].split("=");
-            if (param[0] === "events_file") {
-                json_file = "data/json/"+param[1];
-            }
-        }
-
-        if (Events.scout !== undefined) {
-            cb();
-        }
-        else {
-            $.when($.getJSON(json_file)
-                    ).done(function(json_data) {
-                    Events.scout = json_data.events;
-                    Events.keyword = json_data.keyword;
-                    if (cb) {cb();}
-                    for (var j = 0; j < data_callbacks.length; j++) {
-                        if (data_callbacks[j].called !== true) {
-                            data_callbacks[j]();
-                        }
-                        data_callbacks[j].called = true;
-                    }
-            }).fail(function() {
-                console.log("Scout widget disabled. Missing " + json_file);
-            });
-        }
-    };
-
     function get_event_author(author, data_source, url) {
         // Convert author to common format and mangle emails
         if (data_source === "github" || data_source === "reddit" ||
@@ -254,5 +219,3 @@ var Events = {};
         return out;
     };
 })();
-
-Events.loadScoutEventsData();

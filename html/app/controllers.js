@@ -11,7 +11,7 @@ datasourceControllers.controller('ScoutGlobalCtrl',
     function data_ready(events) {
         Events.set_events(events);
         $scope.scout_events = Events.get_timeline_events(undefined, events_page);
-        $scope.keyword = Events.keyword;
+        $scope.keywords = Events.keywords;
         $scope.scout_events_raw = Events.scout;
         $scope.filter = {"dss":undefined, // data sources
                          "subject":undefined,
@@ -21,32 +21,31 @@ datasourceControllers.controller('ScoutGlobalCtrl',
 
     function load_data_limited(config) {
         // First try to load the events using limited events files
-        var backends = config.backends;
-        var limit = config.limit;
+
         var urlCalls = [];
         angular.forEach (config.backends, function (backend, i) {
-            var filename = "/data/json/" + config.keyword + "-" + backend;
+            var filename = "/data/json/" + config.keywords.join() + "-" + backend;
             filename += "-"+config.limit+".json";
             console.log("Loading file " + filename);
             urlCalls.push($http({method:'GET',url:filename}));
         });
         $q.all(urlCalls)
-        .then(
-          function(results) {
-              // The keyword is the same for all backends
-              Events.keyword = results[0].data.keyword;
-              var events_scout = {};
-              angular.forEach (results, function (result, i) {
-                  angular.extend(events_scout, result.data.events);
-              });
-              data_ready(events_scout);
-              load_all_data(config);
-          },
-          function(errors) {
-              console.log("Error loading events files ...")
-              console.log(errors);
-          }
-        );
+            .then(
+              function(results) {
+                  // The keywords are the same for all backends
+                  Events.keywords = config.keywords;
+                  var events_scout = {};
+                  angular.forEach (results, function (result, i) {
+                      angular.extend(events_scout, result.data.events);
+                  });
+                  data_ready(events_scout);
+                  load_all_data(config);
+              },
+              function(errors) {
+                  console.log("Error loading events files ...")
+                  console.log(errors);
+              }
+            );
     }
 
     $scope.paginateEvents = function() {
@@ -67,7 +66,7 @@ datasourceControllers.controller('ScoutGlobalCtrl',
 
     function load_all_data(config) {
         // Load all events
-        var filename = "/data/json/" + config.keyword + ".json";
+        var filename = "/data/json/" + config.keywords.join() + ".json";
         console.log("Loading file " + filename);
         $http({method:'GET', url:filename}).
         success(function(data,status,headers,config){
