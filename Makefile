@@ -32,9 +32,9 @@ endif
 # In order to generate fresh events just comments the CACHE lines and configure
 # access grants for meetup and github
 # Used the meetup cache data to avoid having a real meetup api key by default
-# MEETUP_CACHE=data/meetup_groups_cache-$(KEYWORDS).json
+MEETUP_CACHE=data/meetup_groups_cache-$(KEYWORDS).json
 # Used the github cache data to avoid having a real Big Query auth by default
-# GITHUB_CACHE=data/github_cache_month.201507-$(KEYWORDS).json
+GITHUB_CACHE=data/github_cache_month.201507-$(KEYWORDS).json
 
 ifndef $(EVENTS_LIMIT)
 	EVENTS_LIMIT=10
