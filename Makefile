@@ -91,8 +91,7 @@ jshint:
 
 DEPLOY=/home/bitergia
 
-# scout.json: events
-deploy: scout.json
+deploy: scout-categories.json
 	cat $^ | python -m json.tool > /dev/null
 	cd html && npm install && cd ..
 	rm -rf $(DEPLOY)/app
