@@ -121,24 +121,38 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         $scope.paginateEvents();
     }
 
-    $scope.scout_start = function() {
-        var scout_config = "/data/json/scout.json";
-        // The JSON file could be passed as param
-        if (document.URL.split('?').length > 1) {
-            param = document.URL.split('?')[1].split("&")[0].split("=");
-            if (param[0] === "events_file") {
-                scout_config = "/data/json/"+param[1];
-            }
-        }
+    $scope.selectCategory = function() {
+        console.log("Loading category " + $scope.category)
+        load_data_limited($scope.categories[$scope.category]);
+    }
 
-        $http({method:'GET',url:scout_config})
-        .success(function(data,status,headers,config){
-            load_data_limited(data);
+    function load_categories(categories_url) {
+        $http({method:'GET',url:categories_url})
+        .success(function(categories, status, headers, config) {
+            $scope.categories = categories;
+            angular.forEach (categories, function (category, name) {
+                // Show by default the first category
+                $scope.category = name;
+                load_data_limited(category);
+                return false;
+            });
         }).
         error(function(data,status,headers,config){
             $scope.error = data;
             console.log(data);
         });
+    }
+
+    $scope.scout_start = function() {
+        var categories = "/data/json/scout-categories.json";
+        // The JSON file could be passed as param
+        if (document.URL.split('?').length > 1) {
+            var param = document.URL.split('?')[1].split("&")[0].split("=");
+            if (param[0] === "categories_file") {
+                categories = "/data/json/"+param[1];
+            }
+        }
+        load_categories(categories);
     };
 
     $scope.scout_start();

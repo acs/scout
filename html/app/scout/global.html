@@ -1,7 +1,10 @@
 <!-- <div class="container-fluid">-->
     <div class="row" data-ng-show="scout_events != undefined">
         <div class="col-sm-8 col-xs-12">
-          <span><small>Events found for <i>"{{keywords.join(' or ')}}"</i>:</small></span>
+          <select ng-change="selectCategory()" ng-model="category">
+            <option ng-repeat="(key, value) in categories">{{key}}</option>
+          </select>
+          <!-- <span><small>Events found for <i>"{{keywords.join(' or ')}}"</i>:</small></span> -->
           <div class="btn-group btn-group-sm">
             <label ng-repeat="(ds, ds_events) in scout_events_raw"
                 class="btn btn-default" btn-checkbox ng-model="$parent.filter.dss[ds]">
