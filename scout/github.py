@@ -94,9 +94,11 @@ class Github(DataSource):
             credentials = storage.get()
 
             if credentials is None or credentials.invalid:
-                # Run oauth2 flow with default arguments.
-                credentials = tools.run_flow(FLOW, storage,
-                                             tools.argparser.parse_args([]))
+                # Run oauth2 flow for console applications
+                # Normally we will run scout in a host without browser
+                flags = \
+                    tools.argparser.parse_args(['--noauth_local_webserver'])
+                credentials = tools.run_flow(FLOW, storage, flags)
 
             http = httplib2.Http()
             http = credentials.authorize(http)
