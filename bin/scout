@@ -128,14 +128,27 @@ def get_datasource(backend, db, keywords, limit = None, key = None):
 
     return ds
 
-def add_category(category, config):
+def add_category(category):
     # Add a category to global config file
     categories_json = "scout-categories.json"  # will include all keywords generated
-    categories = {}
+    categories = []
     if os.path.isfile(categories_json):
         with open(categories_json) as f:
                 categories = json.loads(f.read())
-    categories[category] = config
+    # Search category in categories array before adding it
+    found = False
+    if len(categories) == 0:
+        categories.append(category)
+    else:
+        for i in (0, len(categories)-1):
+            print i
+            print category
+            if categories[i]['name'] == category['name']:
+                categories[i] = category
+                found = True
+                break
+        if not found:
+            categories.append(category)
     with open(categories_json, 'w') as f:
         f.write(json.dumps(categories))
 
@@ -173,12 +186,13 @@ def create_events(backend, db, keywords, category, limit = None, key = None):
         createJSON(res, filename)
 
     # Create JSON file with backends available and other config info
-    res = {"backends":backends,
-           "keywords":keywords,
-           "limit":limit}
-    createJSON(res, config_json)
+    config = {"backends": backends,
+              "keywords": keywords,
+              "limit": limit,
+              "name": category}
+    createJSON(config, config_json)
 
-    add_category(category, res)
+    add_category(config)
 
 def download_events(backend, db, keywords, limit, key):
     create_tables(backend, db, keywords)

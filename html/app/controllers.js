@@ -26,7 +26,7 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         angular.forEach (config.backends, function (backend, i) {
             var filename = "/data/json/" + config.keywords.join() + "-" + backend;
             filename += "-"+config.limit+".json";
-            console.log("Loading file " + filename);
+            // console.log("Loading file " + filename);
             urlCalls.push($http({method:'GET',url:filename}));
         });
         $q.all(urlCalls)
@@ -67,7 +67,7 @@ datasourceControllers.controller('ScoutGlobalCtrl',
     function load_all_data(config) {
         // Load all events
         var filename = "/data/json/" + config.keywords.join() + ".json";
-        console.log("Loading file " + filename);
+        // console.log("Loading file " + filename);
         $http({method:'GET', url:filename}).
         success(function(data,status,headers,config){
             Events.set_events(data.events);
@@ -79,18 +79,6 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         });
     }
 
-    $scope.$watch('filter.dss', function (newVal, oldVal) {
-        if (newVal === undefined) {
-            return;
-        }
-        $scope.filter_dss($scope.filter.dss, events_page);
-    }, true); // <-- objectEquality
-
-    $scope.getEventAuthor = function(author_html) {
-        var url = $sce.trustAsHtml(author_html);
-        return url;
-    };
-
     $scope.parseBody = function(body, keyword) {
         var limit = 80;
         var res = "";
@@ -99,6 +87,13 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         }
         return res;
     };
+
+    $scope.$watch('filter.dss', function (newVal, oldVal) {
+        if (newVal === undefined) {
+        return;
+        }
+        $scope.filter_dss($scope.filter.dss, events_page);
+    }, true); // <-- objectEquality
 
     $scope.filter_dss = function(dss, limit) {
         // Filter data sources not included in dss array
@@ -122,17 +117,25 @@ datasourceControllers.controller('ScoutGlobalCtrl',
     }
 
     $scope.selectCategory = function() {
-        console.log("Loading category " + $scope.category)
-        load_data_limited($scope.categories[$scope.category]);
+        var category_data;
+
+        // console.log("Loading category " + $scope.category)
+        angular.forEach ($scope.categories, function (category) {
+            if (category.name === $scope.category) {
+                category_data = category;
+                return false;
+            }
+        });
+        if (category_data) load_data_limited(category_data);
     }
 
     function load_categories(categories_url) {
         $http({method:'GET',url:categories_url})
         .success(function(categories, status, headers, config) {
             $scope.categories = categories;
-            angular.forEach (categories, function (category, name) {
+            angular.forEach (categories, function (category) {
                 // Show by default the first category
-                $scope.category = name;
+                $scope.category = category.name;
                 load_data_limited(category);
                 return false;
             });
@@ -143,6 +146,11 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         });
     }
 
+    $scope.getEventAuthor = function(author_html) {
+        var url = $sce.trustAsHtml(author_html);
+        return url;
+    };
+
     $scope.scout_start = function() {
         var categories = "/data/json/scout-categories.json";
         // The JSON file could be passed as param
@@ -152,6 +160,7 @@ datasourceControllers.controller('ScoutGlobalCtrl',
                 categories = "/data/json/"+param[1];
             }
         }
+
         load_categories(categories);
     };
 

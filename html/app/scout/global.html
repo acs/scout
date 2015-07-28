@@ -2,7 +2,7 @@
     <div class="row" data-ng-show="scout_events != undefined">
         <div class="col-sm-8 col-xs-12">
           <select ng-change="selectCategory()" ng-model="category">
-            <option ng-repeat="(key, value) in categories">{{key}}</option>
+            <option ng-repeat="category in categories">{{category.name}}</option>
           </select>
           <!-- <span><small>Events found for <i>"{{keywords.join(' or ')}}"</i>:</small></span> -->
           <div class="btn-group btn-group-sm">
