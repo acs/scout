@@ -1,5 +1,8 @@
 // conf.js
 exports.config = {
-  seleniumAddress: 'http://localhost:4444/wd/hub',
-  specs: ['scenarios.js']
+  // seleniumAddress: 'http://localhost:4444/wd/hub',
+  specs: ['scenarios.js'],
+  capabilities: {
+    browserName: 'phantomjs'
+  }
 }

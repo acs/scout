@@ -13,7 +13,8 @@ describe('Scout timeline app', function() {
 
 
     beforeEach(function() {
-        browser.get('http://compose_scout_1');
+        browser.get('http://localhost');
+        // browser.get('http://compose_scout_1');
         // browser.get('http://sega.bitergia.net:9090');
     });
 
