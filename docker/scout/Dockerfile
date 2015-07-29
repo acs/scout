@@ -57,3 +57,12 @@ RUN sudo service mysql start && \
 USER root
 RUN mv /var/www/html /var/www/html.orig
 RUN ln -s ${DEPLOY_USER_DIR}/app /var/www/html
+
+# For testing with Protractor and PhantomJS
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends \
+    openjdk-7-jre \
+    phantomjs
+
+RUN npm -g install protractor && \
+    webdriver-manager update
