@@ -66,3 +66,6 @@ RUN apt-get update && \
 
 RUN npm -g install protractor && \
     webdriver-manager update
+
+# Basic cleanup
+RUN apt-get clean
