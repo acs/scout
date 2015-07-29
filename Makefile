@@ -35,6 +35,9 @@ endif
 MEETUP_CACHE=data/meetup_groups_cache-$(KEYWORDS).json
 # Used the github cache data to avoid having a real Big Query auth by default
 GITHUB_CACHE=data/github_cache_month.201507-$(KEYWORDS).json
+GMANE_CACHE=data/gmane_cache-$(KEYWORDS).csv
+REDDIT_CACHE=data/reddit_cache-$(KEYWORDS).json
+STACKOVERFLOW_CACHE=data/stackoverflow_cache-$(KEYWORDS).json
 
 ifndef $(EVENTS_LIMIT)
 	EVENTS_LIMIT=10
@@ -58,13 +61,13 @@ pep8:
 github: $(GITHUB_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
-stackoverflow:
+stackoverflow: $(STACKOVERFLOW_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
-reddit:
+reddit: $(REDDIT_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
-gmane:
+gmane: $(GMANE_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 meetup: $(MEETUP_CACHE)
@@ -110,3 +113,6 @@ cleandb:
 .PHONY: clean
 clean: cleandb
 	rm -rf *.json data/*.csv data/*.json data/*_cache.json
+
+tests: deploy
+	protractor html/e2e-tests/protractor.conf.js
