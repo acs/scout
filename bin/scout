@@ -141,8 +141,6 @@ def add_category(category):
         categories.append(category)
     else:
         for i in (0, len(categories)-1):
-            print i
-            print category
             if categories[i]['name'] == category['name']:
                 categories[i] = category
                 found = True
