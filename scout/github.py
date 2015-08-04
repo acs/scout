@@ -141,6 +141,10 @@ class Github(DataSource):
             with open(cache_file) as f:
                 data = json.loads(f.read())
 
+        if 'rows' not in data:
+            print data
+            raise ValueError("Can't get results from github")
+
         for row in data['rows']:
             event_data = []
             for value in row['f']:
