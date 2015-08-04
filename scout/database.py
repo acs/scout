@@ -53,11 +53,27 @@ class Database(object):
         query = "CREATE DATABASE " + name + " CHARACTER SET utf8"
         cursor.execute(query)
         conn.close()
-        logging.info(name+" created")
+        # logging.info(name+" created")
 
-    def open_database(self):
+    def drop_db(self, name):
+        """ Remove the database """
+        conn = MySQLdb.Connect(host="127.0.0.1",
+                               port=3306,
+                               user=self.dbuser,
+                               passwd=self.dbpassword)
+        cursor = conn.cursor()
+        query = "DROP DATABASE IF EXISTS " + name
+        cursor.execute(query)
+        conn.close()
+        # logging.info(name+" dropped")
+
+    def open_database(self, cleandb = True):
         """ Open the database, creating it if not exists """
         try:
+            if cleandb:
+                self.drop_db(self.dbname)
+                self.create_db(self.dbname)
+
             conn = MySQLdb.Connect(host="127.0.0.1",
                                    port=3306,
                                    user=self.dbuser,

@@ -43,7 +43,7 @@ ifndef $(EVENTS_LIMIT)
 	EVENTS_LIMIT=10
 endif
 
-SCOUT=PYTHONPATH=. bin/scout --keywords $(KEYWORDS) --category $(CATEGORY)
+SCOUT=PYTHONPATH=. bin/scout --keywords $(KEYWORDS) --category $(CATEGORY) --limit $(EVENTS_LIMIT)
 
 #
 # PYTHON
@@ -75,7 +75,6 @@ meetup: $(MEETUP_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
 
 .PHONY: events
-# events: cleandb $(BACKENDS)
 events: $(BACKENDS)
 	$(SCOUT) --events -u root -d scout
 
@@ -101,17 +100,15 @@ deploy: scout-categories.json
 	cp -a html/app $(DEPLOY)
 	rm -rf $(DEPLOY)/app/bower_components
 	cp -a html/bower_components $(DEPLOY)/app
+	rm -rf $(DEPLOY)/app/data/json
 	mkdir -p $(DEPLOY)/app/data/json
 	cp $^ $(DEPLOY)/app/data/json
 	cp *.json $(DEPLOY)/app/data/json
 
-all: jshint pep8 cleandb $(BACKENDS) events events_limit deploy
-
-cleandb:
-	echo "drop database if exists $(DBNAME)" | mysql -u $(DBUSER)
+all: jshint pep8 $(BACKENDS) deploy
 
 .PHONY: clean
-clean: cleandb
+clean: 
 	rm -rf *.json data/*.csv data/*.json data/*_cache.json
 
 tests: deploy

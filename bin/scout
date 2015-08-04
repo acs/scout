@@ -32,6 +32,9 @@ import sys
 
 from optparse import OptionParser
 
+from ConfigParser import SafeConfigParser
+
+
 from scout.database import Database
 from scout.github import Github
 from scout.gmane import Gmane
@@ -81,15 +84,16 @@ def read_options():
                       action="store",
                       dest="key",
                       help="key to be used with the API")
-    parser.add_option("--events",
-                      action="store_true",
-                      default=False,
-                      dest="events",
-                      help="generate events")
     parser.add_option("--limit",
                       action="store",
                       dest="limit",
-                      help="limit events number generated per backend")
+                      default="10",
+                      help="limit events for initial quick downloading JSONs")
+    parser.add_option("--conf",
+                      action="store",
+                      # default="scout.conf",
+                      dest="config_file",
+                      help="File with scout configuration")
 
 
     (opts, args) = parser.parse_args()
@@ -97,14 +101,13 @@ def read_options():
     if len(args) != 0:
         parser.error("Wrong number of arguments")
 
-    if not (opts.dbname and opts.dbuser):
-        parser.error("--database --db-user are needed")
+    if not (opts.config_file):
+        # All options should come from command line
+        if not (opts.dbname and opts.dbuser and opts.category and opts.keywords):
+            parser.error("--database --db-user are needed")
 
-    if opts.backend == "meetup" and not opts.key:
-        parser.error("meetup backend needs --key with the API key")
-
-    if opts.events and not opts.category:
-        parser.error("keywords need the category than includes them")
+        if opts.backend == "meetup" and not opts.key:
+            parser.error("meetup backend needs --key with the API key")
 
     return opts
 
@@ -142,7 +145,11 @@ def add_category(category):
     else:
         for i in range(0, len(categories)):
             if categories[i]['name'] == category['name']:
-                categories[i] = category
+                for backend in category['backends']:
+                    if backend not in categories[i]['backends']:
+                        categories[i]['backends'].append(backend)
+                    if category['limit'] is not None:
+                        categories[i]['limit'] = category['limit']
                 found = True
                 break
         if not found:
@@ -156,6 +163,7 @@ def create_events(backend, db, keywords, category, limit = None, key = None):
     events = {}
     keywords_file = ",".join(keywords)
 
+
     if backend is not None:
         backends = [backend]
 
@@ -165,16 +173,23 @@ def create_events(backend, db, keywords, category, limit = None, key = None):
     for backend in backends:
         events[backend] = get_datasource(backend, db, keywords, limit, key).get_events()
 
-    res = {"events":events,
-           "keywords":keywords}
+    res = {"events": events,
+           "keywords": keywords}
 
-    # Create JSON file with all events
+    # Create JSON file with all events. If it exists, update it
     filename = keywords_file+".json"
     if limit is not None:
         filename = keywords_file+"-"+limit+".json"
+
+    if os.path.isfile(filename):
+        with open(filename) as f:
+            current_events = json.loads(f.read())
+            for backend in events:
+                current_events['events'][backend] = events[backend]
+        res = current_events
     createJSON(res, filename)
 
-    # Create a JSON file with event per data source
+    # Create a JSON file with events per data source
     for backend in events:
         res = {"events":{backend:events[backend]},
                "keywords":keywords}
@@ -201,21 +216,114 @@ def download_events(backend, db, keywords, limit, key):
 def create_tables(backend, db, keyword):
     return get_datasource(backend, db, keyword).create_tables()
 
+
+def check_config_section(section, options):
+    needed_options = []
+    if section == "common":
+        needed_options = ['db_user','db_password','db_name_prefix','backends']
+    elif section == "events":
+        needed_options = []
+    elif "category_" in section:
+        needed_options = ['keywords']
+
+    for option in needed_options:
+        if option not in options:
+            raise Exception(section + " config section needs " + option)
+            sys.exit(1)
+
+def config_scout(opts, categories):
+    logging.info("Using " + opts.config_file + " for configuring scout")
+
+    parser = SafeConfigParser()
+    conf_file = opts.config_file
+    with open(conf_file, 'r') as fd:
+        parser.readfp(fd)
+
+    sections = parser.sections()
+
+    # Sections are: global, one section per category and events
+    needed_sections = ['common','events']
+    for section in needed_sections:
+        if section not in sections:
+            raise(Exception("Bad config file. Needed section not found " + section))
+
+    for section in sections:
+        options = parser.options(section)
+        check_config_section(section, options)
+        if section == "common":
+            opts.dbname = parser.get(section, 'db_name_prefix')
+            opts.dbuser = parser.get(section, 'db_user')
+            opts.dbpassword = parser.get(section, 'db_password')
+            opts.backends = parser.get(section, 'backends').split(",")
+            if 'meetup_key' in options:
+                opts.meetup_key = parser.get(section, 'meetup_key')
+        elif section.find("category_") == 0:
+            category = section.replace("category_","")
+            categories[category] = parser.get(section, 'keywords').split(",")
+        elif section == "events":
+            if 'limit' in options:
+                opts.limit = parser.get(section, 'limit')
+        else:
+            logging.warning("Unknown section " + section)
+
+def get_backend_key(backend):
+    """ Get the API key for a backend """
+
+    key = opts.key  # Use the key provided in command line by default
+    if backend == "meetup":
+        try:
+            if opts.meetup_key is not None:
+                # config file includes the key
+                key = opts.meetup_key
+        except:  # meetup_key not defined
+            pass
+
+    return key
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-    opts = read_options()
-    db = Database(opts.dbuser, opts.dbpassword, opts.dbname)
-    db.open_database()
+    categories = {}  # dict with category and its keywords
 
-    keywords = opts.keywords.split(",")
+    opts = read_options()  # opts used in all places as config object
 
-    if opts.events:
-        create_events(opts.backend, db, keywords, opts.category, 
-                      opts.limit, opts.key)
-
+    # We can receive config from command line or from config file
+    if opts.config_file:
+        if not os.path.isfile(opts.config_file):
+            raise(Exception("Can not find config file " + opts.config_file))
+        else:
+            # Fill opts with config info from the file
+            config_scout(opts, categories)
     else:
-        download_events(opts.backend, db, keywords, opts.limit, opts.key)
+        categories[opts.category] = opts.keywords.split(",")
+        opts.backends = [opts.backend]
 
-    db.close_database()
+    for category in categories:
+        keywords = categories[category]
+
+        # One database for category
+        db = Database(opts.dbuser, opts.dbpassword, opts.dbname+"_"+category)
+        cleandb = True  # Until we have incremental mode, recreate dbs
+        db.open_database(cleandb)
+
+        for backend in opts.backends:
+
+            logging.info("Generating " + category + " in " + backend)
+
+            limit = None  # not used in data gathering
+
+            download_events(backend, db, keywords,
+                            limit, get_backend_key(backend))
+
+            # Generate all events
+            create_events(backend, db, keywords, category,
+                          limit, get_backend_key(backend))
+
+            if opts.limit:
+                # Generate a limited list of events for initial downloading
+                create_events(backend, db, keywords, category,
+                              opts.limit, get_backend_key(backend))
+
+        db.close_database()
+
     sys.exit(0)
