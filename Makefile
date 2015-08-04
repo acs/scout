@@ -44,6 +44,7 @@ ifndef $(EVENTS_LIMIT)
 endif
 
 SCOUT=PYTHONPATH=. bin/scout --keywords $(KEYWORDS) --category $(CATEGORY) --limit $(EVENTS_LIMIT)
+SCOUT_CONF=PYTHONPATH=. bin/scout --conf scout.conf
 
 #
 # PYTHON
@@ -74,12 +75,8 @@ meetup: $(MEETUP_CACHE)
 	@echo "meetup_api_key file must include a Meetup API KEY to refresh data\n"
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
 
-.PHONY: events
-events: $(BACKENDS)
-	$(SCOUT) --events -u root -d scout
-
-events_limit: events
-	$(SCOUT) --events --limit $(EVENTS_LIMIT) -u root -d scout
+newevents:
+	$(SCOUT_CONF)
 
 #
 # JAVASCRIPT
@@ -105,11 +102,11 @@ deploy: scout-categories.json
 	cp $^ $(DEPLOY)/app/data/json
 	cp *.json $(DEPLOY)/app/data/json
 
-all: jshint pep8 $(BACKENDS) deploy
+all: jshint pep8 newevents deploy
 
 .PHONY: clean
 clean: 
-	rm -rf *.json data/*.csv data/*.json data/*_cache.json
+	rm -rf *-*.json data/*.csv data/*.json data/*_cache.json
 
 tests: deploy
 	protractor html/e2e-tests/protractor.conf.js
