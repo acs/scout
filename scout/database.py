@@ -67,7 +67,7 @@ class Database(object):
         conn.close()
         # logging.info(name+" dropped")
 
-    def open_database(self, cleandb = True):
+    def open_database(self, cleandb=True):
         """ Open the database, creating it if not exists """
         try:
             if cleandb:
