@@ -57,7 +57,7 @@ SCOUT_CONF=PYTHONPATH=. bin/scout --conf scout.conf
 	gunzip -c $^  > $@
 
 pep8:
-	pep8 --exclude=VizGrimoireJS,./html .
+	pep8 --exclude=VizGrimoireJS,./html . bin/scout
 
 github: $(GITHUB_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@

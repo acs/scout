@@ -43,6 +43,7 @@ from scout.reddit import Reddit
 from scout.stackoverflow import Stackoverflow
 from scout.utils import createJSON
 
+
 def read_options():
     parser = OptionParser(usage="usage: %prog [options]",
                           version="%prog 0.1")
@@ -95,7 +96,6 @@ def read_options():
                       dest="config_file",
                       help="File with scout configuration")
 
-
     (opts, args) = parser.parse_args()
 
     if len(args) != 0:
@@ -103,7 +103,8 @@ def read_options():
 
     if not (opts.config_file):
         # All options should come from command line
-        if not (opts.dbname and opts.dbuser and opts.category and opts.keywords):
+        if not (opts.dbname and opts.dbuser and opts.category
+                and opts.keywords):
             parser.error("--database --db-user are needed")
 
         if opts.backend == "meetup" and not opts.key:
@@ -112,7 +113,7 @@ def read_options():
     return opts
 
 
-def get_datasource(backend, db, keywords, limit = None, key = None):
+def get_datasource(backend, db, keywords, limit=None, key=None):
     ds = None
 
     if backend == "stackoverflow":
@@ -131,9 +132,11 @@ def get_datasource(backend, db, keywords, limit = None, key = None):
 
     return ds
 
+
 def add_category(category):
     # Add a category to global config file
-    categories_json = "scout-categories.json"  # will include all keywords generated
+    # It will include all keywords generated
+    categories_json = "scout-categories.json"
     categories = []
     if os.path.isfile(categories_json):
         with open(categories_json) as f:
@@ -157,12 +160,12 @@ def add_category(category):
     with open(categories_json, 'w') as f:
         f.write(json.dumps(categories))
 
-def create_events(backend, db, keywords, category, limit = None, key = None):
+
+def create_events(backend, db, keywords, category, limit=None, key=None):
     config_json = "scout-"+",".join(keywords)+".json"
     backends = ["stackoverflow", "github", "reddit", "gmane", "meetup"]
     events = {}
     keywords_file = ",".join(keywords)
-
 
     if backend is not None:
         backends = [backend]
@@ -171,7 +174,8 @@ def create_events(backend, db, keywords, category, limit = None, key = None):
         logging.error(backend + " not supported")
 
     for backend in backends:
-        events[backend] = get_datasource(backend, db, keywords, limit, key).get_events()
+        ds = get_datasource(backend, db, keywords, limit, key)
+        events[backend] = ds.get_events()
 
     res = {"events": events,
            "keywords": keywords}
@@ -191,8 +195,8 @@ def create_events(backend, db, keywords, category, limit = None, key = None):
 
     # Create a JSON file with events per data source
     for backend in events:
-        res = {"events":{backend:events[backend]},
-               "keywords":keywords}
+        res = {"events": {backend: events[backend]},
+               "keywords": keywords}
         filename = keywords_file+"-"+backend+".json"
         if limit is not None:
             filename = keywords_file+"-"+backend+"-"+limit+".json"
@@ -207,6 +211,7 @@ def create_events(backend, db, keywords, category, limit = None, key = None):
 
     add_category(config)
 
+
 def download_events(backend, db, keywords, limit, key):
     create_tables(backend, db, keywords)
     ds = get_datasource(backend, db, keywords, limit, key)
@@ -220,7 +225,8 @@ def create_tables(backend, db, keyword):
 def check_config_section(section, options):
     needed_options = []
     if section == "common":
-        needed_options = ['db_user','db_password','db_name_prefix','backends']
+        needed_options = ['db_user', 'db_password', 'db_name_prefix',
+                          'backends']
     elif section == "events":
         needed_options = []
     elif "category_" in section:
@@ -230,6 +236,7 @@ def check_config_section(section, options):
         if option not in options:
             raise Exception(section + " config section needs " + option)
             sys.exit(1)
+
 
 def config_scout(opts, categories):
     logging.info("Using " + opts.config_file + " for configuring scout")
@@ -242,10 +249,11 @@ def config_scout(opts, categories):
     sections = parser.sections()
 
     # Sections are: global, one section per category and events
-    needed_sections = ['common','events']
+    needed_sections = ['common', 'events']
     for section in needed_sections:
         if section not in sections:
-            raise(Exception("Bad config file. Needed section not found " + section))
+            raise(Exception("Bad config file. Needed section not found " +
+                            section))
 
     for section in sections:
         options = parser.options(section)
@@ -258,13 +266,14 @@ def config_scout(opts, categories):
             if 'meetup_key' in options:
                 opts.meetup_key = parser.get(section, 'meetup_key')
         elif section.find("category_") == 0:
-            category = section.replace("category_","")
+            category = section.replace("category_", "")
             categories[category] = parser.get(section, 'keywords').split(",")
         elif section == "events":
             if 'limit' in options:
                 opts.limit = parser.get(section, 'limit')
         else:
             logging.warning("Unknown section " + section)
+
 
 def get_backend_key(backend):
     """ Get the API key for a backend """
