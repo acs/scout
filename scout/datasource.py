@@ -86,7 +86,6 @@ class DataSource(object):
             try:
                 query = "CREATE INDEX %s ON %s (%s);" % (idx.name,
                                                          idx.table, idx.field)
-                print query
                 self.db.dsquery.ExecuteQuery(query)
                 self.db.conn.commit()
             except:
@@ -103,4 +102,5 @@ class DataSource(object):
                 self.db.dsquery.ExecuteQuery(query)
                 self.db.conn.commit()
             except:
-                logging.warning("Warning: Dropping %s index" % idx.name)
+                pass  # the index not exists yet
+                # logging.warning("Warning: Dropping %s index" % idx.name)
