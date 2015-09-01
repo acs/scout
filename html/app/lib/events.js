@@ -145,10 +145,11 @@ var Events = {};
         return found;
     };
 
-
-    Events.get_timeline_events = function(dss, limit, search) {
+    Events.get_timeline_events = function(dss, limit, search, from, to) {
         var events_ds = Events.scout;
         var timeline_events = []; // All events to be shown in the timeline
+
+        if (Events.scout === undefined) {return timeline_events;}
 
         if (dss !== undefined && dss.length > 0) {
             events_ds = {};
@@ -197,7 +198,32 @@ var Events = {};
              timeline_events = timeline_events_search;
          }
 
+        if (from || to) {
+            // Filter events by dates
+
+            var timeline_events_window = [];
+
+            $.each(timeline_events, function(index, event){
+                var event_date = new Date(Date.parse(event.date.replace(/-/g,"/")));
+                if (from && to) {
+                    if (event_date >= from && event_date <= to) {
+                        timeline_events_window.push(event);
+                    }
+                } else if (from) {
+                    if (event_date >= from) {
+                        timeline_events_window.push(event);
+                    }
+                } else if (to) {
+                    if (event_date <= to) {
+                        timeline_events_window.push(event);
+                    }
+                }
+            });
+            timeline_events = timeline_events_window;
+        }
+
         if (limit && limit <= timeline_events.length) {
+            // Apply limit in last step to be used in all filters
             timeline_events = timeline_events.slice(0, limit);
         }
 
@@ -218,4 +244,14 @@ var Events = {};
         }
         return out;
     };
+
+    Events.get_oldest_event_date = function () {
+        var timeline = Events.get_timeline_events();
+        var oldest;
+        if (timeline.length > 0) {
+            oldest = new Date(timeline[timeline.length - 1].date);
+        }
+        return oldest;
+    };
+
 })();

@@ -3,6 +3,7 @@
 // Declare app level module which depends on views, and components
 
 var dashApp = angular.module('scoutApp', [
+  'ngAnimate',
   'ngRoute',
   'datasourceControllers',
   'ui.bootstrap',

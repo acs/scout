@@ -48,20 +48,44 @@ datasourceControllers.controller('ScoutGlobalCtrl',
             );
     }
 
-    $scope.paginateEvents = function() {
-        // Add more events to implement infinite scroll
-        // Add more events from Events.scout_all to Events.scout
+    $scope.showFilterEvents = function() {
+        // Show events using filters defined and with pagination
+        // for infinite scroll
+
         if ($scope.scout_events === undefined) {
             return;
         }
+
+        var date_to, date_from;
+
+        var dss = {};
+        if ($scope.filter) {
+            dss = $scope.filter.dss;
+        }
+        var dss_to_include;
+
+        if (! angular.equals({}, dss)) {
+            dss_to_include = [];
+            // Filter specific data sources
+            angular.forEach(dss, function(include, ds) {
+                if (include) {
+                    dss_to_include.push(ds);
+                }
+            });
+        }
+
+        if (Date.parse($scope.dt_from) !== Date.parse($scope.date_min) ||
+                Date.parse($scope.dt_to) !== Date.parse($scope.date_max)) {
+            // Filter using dates
+            var date_from = new Date(Date.parse($scope.dt_from));
+            var date_to = new Date(Date.parse($scope.dt_to));
+        }
+
         var limit = $scope.scout_events.length + events_page;
-        if ($scope.filter.dss !== undefined) {
-            $scope.filter_dss($scope.filter.dss, limit);
-        }
-        else {
-            $scope.scout_events =
-                Events.get_timeline_events(undefined, limit, $scope.filter_text);
-        }
+
+        $scope.scout_events =
+            Events.get_timeline_events(dss_to_include, limit,
+                                       $scope.filter_text, date_from, date_to);
     };
 
     function load_all_data(config) {
@@ -69,7 +93,7 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         var filename = "/data/json/" + config.keywords.join() + ".json";
         // console.log("Loading file " + filename);
         $http({method:'GET', url:filename}).
-        success(function(data,status,headers,config){
+        success(function(data,status, headers, config){
             Events.set_events(data.events);
             $scope.scout_events_raw = Events.scout;
         }).
@@ -90,30 +114,14 @@ datasourceControllers.controller('ScoutGlobalCtrl',
 
     $scope.$watch('filter.dss', function (newVal, oldVal) {
         if (newVal === undefined) {
-        return;
-        }
-        $scope.filter_dss($scope.filter.dss, events_page);
-    }, true); // <-- objectEquality
-
-    $scope.filter_dss = function(dss, limit) {
-        // Filter data sources not included in dss array
-        var dss_to_include = [];
-        if (angular.equals({}, dss)) {
-            // No filters defined
             return;
         }
-        angular.forEach(dss, function(include, ds) {
-            if (include) {
-                dss_to_include.push(ds);
-            }
-        });
-
-        $scope.scout_events =
-            Events.get_timeline_events(dss_to_include, limit, $scope.filter_text);
-    };
+        $scope.scout_events = [];
+        $scope.showFilterEvents();
+    }, true); // <-- objectEquality
 
     $scope.doSearch = function() {
-        $scope.paginateEvents();
+        $scope.showFilterEvents();
     }
 
     $scope.selectCategory = function() {
@@ -151,7 +159,7 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         return url;
     };
 
-    $scope.scout_start = function() {
+    function scout_start() {
         var categories = "/data/json/scout-categories.json";
         // The JSON file could be passed as param
         if (document.URL.split('?').length > 1) {
@@ -162,7 +170,58 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         }
 
         load_categories(categories);
+
+        dt_init();
+    }
+
+    function dt_init() {
+        $scope.date_min = Events.get_oldest_event_date();
+        $scope.date_max = new Date();
+        $scope.dt_from = $scope.date_min;
+        $scope.dt_to = $scope.date_max;
+    }
+
+    $scope.$watch('scout_events_raw', function (newVal, oldVal) {
+        if (newVal === undefined) {
+            return;
+        }
+        $scope.date_min = Events.get_oldest_event_date();
+        $scope.dt_from = $scope.date_min;
+    }, true); // <-- objectEquality
+
+    $scope.$watch('dt_from', function (newVal, oldVal) {
+        if (newVal === undefined) {
+            return;
+        }
+        $scope.showFilterEvents();
+    }, true); // <-- objectEquality
+
+    $scope.$watch('dt_to', function (newVal, oldVal) {
+        if (newVal === undefined) {
+            return;
+        }
+        $scope.showFilterEvents();
+    }, true); // <-- objectEquality
+
+    $scope.open_from = function($event) {
+        $scope.status.opened_from = true;
     };
 
-    $scope.scout_start();
+    $scope.open_to = function($event) {
+        $scope.status.opened_to = true;
+    };
+
+    $scope.dateOptions = {
+        formatYear: 'yy',
+        startingDay: 1
+    };
+
+    $scope.status = {
+        opened_from: false,
+        opened_to: false
+    };
+
+    // Init the interface
+    scout_start();
+
 }]);

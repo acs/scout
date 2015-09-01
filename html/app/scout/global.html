@@ -1,6 +1,6 @@
 <!-- <div class="container-fluid">-->
     <div class="row" data-ng-show="scout_events != undefined">
-        <div class="col-sm-8 col-xs-12">
+        <div class="col-sm-5 col-xs-12">
           <select ng-change="selectCategory()" ng-model="category">
             <option ng-repeat="category in categories">{{category.name}}</option>
           </select>
@@ -11,7 +11,41 @@
                 <b>{{ds}}</b>:{{ds_events.date.length}}</label>
           </div>
         </div>
-        <div class="col-sm-4 col-xs-12">
+
+        <div class="col-sm-2 col-xs-12">
+            <p class="input-group">
+              <input type="text" class="form-control"
+                ng-model="dt_from" ng-required="true"
+                datepicker-popup="dd-MM-yy" datepicker-options="dateOptions"
+                is-open="status.opened_from" close-text="Close"
+                min-date="date_min" max-date="date_max"
+                />
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default"
+                  ng-click="open_from($event)">
+                  <i class="glyphicon glyphicon-calendar"></i>
+                </button>
+              </span>
+            </p>
+        </div>
+        <div class="col-sm-2 col-xs-12">
+            <p class="input-group">
+             <input type="text" class="form-control"
+              ng-model="dt_to" ng-required="true"
+              datepicker-popup="dd-MM-yy" datepicker-options="dateOptions"
+              is-open="status.opened_to" close-text="Close"
+              min-date="date_min" max-date="date_max"
+              />
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default"
+                  ng-click="open_to($event)">
+                  <i class="glyphicon glyphicon-calendar"></i>
+                </button>
+              </span>
+            </p>
+        </div>
+
+        <div class="col-sm-3 col-xs-12">
           <form ng-submit="doSearch()" class="form-inline pull-right">
               <div class="form-group">
                   <input type="text" style="width: auto; float: left; margin-right: 2px;"
@@ -23,11 +57,12 @@
               </div>
           </form>
         </div>
+
     </div>
 
     <div class="row" style="padding-top: 1em;"
         data-ng-show="scout_events != undefined">
-        <ul class="list-group timeline" infinite-scroll="paginateEvents()"
+        <ul class="list-group timeline" infinite-scroll="showFilterEvents()"
             infinite-scroll-distance="0" >
             <li class="list-group-item"
                 ng-repeat="event in scout_events">
