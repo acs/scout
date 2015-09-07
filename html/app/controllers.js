@@ -154,6 +154,12 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         });
     }
 
+    $scope.addCategory = function(){
+        // Add a new category using Scout REST API
+        $scope.add_category = 0;
+        $scope.adding_category = 1;
+    }
+
     $scope.getEventAuthor = function(author_html) {
         var url = $sce.trustAsHtml(author_html);
         return url;

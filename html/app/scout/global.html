@@ -4,14 +4,13 @@
           <select ng-change="selectCategory()" ng-model="category">
             <option ng-repeat="category in categories">{{category.name}}</option>
           </select>
-          <!-- <span><small>Events found for <i>"{{keywords.join(' or ')}}"</i>:</small></span> -->
+            <a href ng-click="add_category = 1"><span class="fa fa-plus-circle"></span></a>
           <div class="btn-group btn-group-sm">
             <label ng-repeat="(ds, ds_events) in scout_events_raw"
                 class="btn btn-default" btn-checkbox ng-model="$parent.filter.dss[ds]">
                 <b>{{ds}}</b>:{{ds_events.date.length}}</label>
           </div>
         </div>
-
         <div class="col-sm-2 col-xs-12">
             <p class="input-group">
               <input type="text" class="form-control"
@@ -58,6 +57,32 @@
           </form>
         </div>
 
+    </div>
+
+    <div class="row">
+        <div  style="padding-top: 1em;" data-ng-show="adding_category"
+        class="alert alert-success alert-dismissable">
+        <button type="button" class="close" data-ng-click="adding_category = 0"
+        aria-hidden="true">&times;</button>
+        The  new category <b>{{new_category}}</b> is being generated.
+        </div>
+    </div>
+
+    <div class="row" style="padding-top: 1em;" data-ng-show="add_category">
+        <form>
+          <input type="text" style="width: auto; float: left; margin-right: 2px;"
+              class="form-control input-sm"
+              ng-model="new_category"
+              placeholder="Category_name">
+          <input type="text" style="width: auto; float: left; margin-right: 2px;"
+              class="form-control input-sm"
+              ng-model="new_keywords"
+              placeholder="keyword1,keyword2,...">
+          <button id="addCategory_button" type="button" ng-click="addCategory()"
+            class="btn btn-success btn-sm" >Add</button>
+          <button id="cancel_button" type="button" ng-click="add_category = 0"
+            class="btn btn-warning btn-sm" >Cancel</button>
+        </form>
     </div>
 
     <div class="row" style="padding-top: 1em;"
