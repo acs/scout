@@ -158,7 +158,26 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         // Add a new category using Scout REST API
         $scope.add_category = 0;
         $scope.adding_category = 1;
-    }
+        var api_url = "/scoutapi/api/category";
+        var category = {};
+        category[$scope.new_category] = $scope.new_keywords;
+
+        var headers = {
+                "Content-Type": 'application/json'
+        };
+
+        $http({method:'POST',url:api_url, data:category, headers: headers})
+        .success(function(data, status, headers, config) {
+            console.log(data);
+            $scope.message = data;
+            // $scope.adding_category = 0;
+        })
+        .error(function(data,status,headers,config){
+            console.log("Error in projects urls " + data);
+            $scope.error = data;
+            // $scope.adding_category = 0;
+        });
+    };
 
     $scope.getEventAuthor = function(author_html) {
         var url = $sce.trustAsHtml(author_html);
