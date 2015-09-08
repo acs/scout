@@ -1,11 +1,13 @@
 from flask import Flask, request, Response
 from ConfigParser import SafeConfigParser
 import os
+import subprocess
 import traceback
 
 
 app = Flask(__name__)
-scout_conf = "/home/bitergia/scout/scout.conf"
+scout_home = "/home/bitergia/scout"
+scout_conf = scout_home +"/scout.conf"
 
 @app.route("/api/category/<name>", methods = ['GET'])
 def get_category(name):
@@ -37,17 +39,23 @@ def add_category(category):
     config[cat_name] = {}
     try:
         config[cat_name]["keywords"] = category[name]
-
-    # Time to write the new config file
-    # TODO: control concurrency
-
+        # Time to write the new config file
+        # TODO: control concurrency
         write_config(config)
-
+        # res = update_scout()
     except:
         traceback.print_exc()
 
-
     return config
+
+def update_scout():
+    # Launch scout to update events and deploy them to web server
+
+    command = os.path.join(scout_home,"utils/update-scout.sh")
+    res = subprocess.call(command, shell = True)
+
+    return res
+
 
 def read_config():
     options = {}
