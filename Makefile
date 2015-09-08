@@ -101,6 +101,7 @@ deploy: scout-categories.json
 	mkdir -p $(DEPLOY)/app/data/json
 	cp $^ $(DEPLOY)/app/data/json
 	cp *.json $(DEPLOY)/app/data/json
+	cp -a logs $(DEPLOY)/app
 
 all: jshint pep8 newevents deploy
 
