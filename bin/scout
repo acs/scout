@@ -95,6 +95,12 @@ def read_options():
                       # default="scout.conf",
                       dest="config_file",
                       help="File with scout configuration")
+    parser.add_option("--json-dir",
+                      action="store",
+                      default="html/app/data/json",
+                      dest="json_dir",
+                      help="Directory for storing JSON with events")
+
 
     (opts, args) = parser.parse_args()
 
@@ -133,10 +139,12 @@ def get_datasource(backend, db, keywords, limit=None, key=None):
     return ds
 
 
-def add_category(category):
+def add_category(category, json_dir):
     # Add a category to global config file
     # It will include all keywords generated
     categories_json = "scout-categories.json"
+    categories_json = os.path.join(json_dir, categories_json)
+
     categories = []
     if os.path.isfile(categories_json):
         with open(categories_json) as f:
@@ -161,8 +169,10 @@ def add_category(category):
         f.write(json.dumps(categories))
 
 
-def create_events(backend, db, keywords, category, limit=None, key=None):
+def create_events(backend, db, keywords, category, json_dir,
+                  limit=None, key=None):
     config_json = "scout-"+",".join(keywords)+".json"
+    config_json = os.path.join(json_dir, config_json)
     backends = ["stackoverflow", "github", "reddit", "gmane", "meetup"]
     events = {}
     keywords_file = ",".join(keywords)
@@ -181,9 +191,9 @@ def create_events(backend, db, keywords, category, limit=None, key=None):
            "keywords": keywords}
 
     # Create JSON file with all events. If it exists, update it
-    filename = keywords_file+".json"
+    filename = os.path.join(json_dir, keywords_file+".json")
     if limit is not None:
-        filename = keywords_file+"-"+limit+".json"
+        filename = os.path.join(json_dir, keywords_file+"-"+limit+".json")
 
     if os.path.isfile(filename):
         with open(filename) as f:
@@ -197,9 +207,10 @@ def create_events(backend, db, keywords, category, limit=None, key=None):
     for backend in events:
         res = {"events": {backend: events[backend]},
                "keywords": keywords}
-        filename = keywords_file+"-"+backend+".json"
+        filename = os.path.join(json_dir, keywords_file+"-"+backend+".json")
         if limit is not None:
-            filename = keywords_file+"-"+backend+"-"+limit+".json"
+            filename = os.path.join(json_dir, keywords_file+"-"+ \
+                                    backend+"-"+limit+".json")
         createJSON(res, filename)
 
     # Create JSON file with backends available and other config info
@@ -209,7 +220,7 @@ def create_events(backend, db, keywords, category, limit=None, key=None):
               "name": category}
     createJSON(config, config_json)
 
-    add_category(config)
+    add_category(config, json_dir)
 
 
 def download_events(backend, db, keywords, limit, key):
@@ -325,12 +336,12 @@ if __name__ == '__main__':
                             limit, get_backend_key(backend))
 
             # Generate all events
-            create_events(backend, db, keywords, category,
+            create_events(backend, db, keywords, category, opts.json_dir,
                           limit, get_backend_key(backend))
 
             if opts.limit:
                 # Generate a limited list of events for initial downloading
-                create_events(backend, db, keywords, category,
+                create_events(backend, db, keywords, category, opts.json_dir,
                               opts.limit, get_backend_key(backend))
 
         db.close_database()
