@@ -20,8 +20,8 @@ RUN apt-get update && \
         tree ccze \
         psmisc \
         python pep8 \
-        apache2 \
-        python-mysqldb python-requests \
+        apache2 libapache2-mod-wsgi \
+        python-mysqldb python-requests python-flask \
         make \
         unzip wget \
         npm nodejs nodejs-legacy \
