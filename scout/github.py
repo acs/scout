@@ -130,16 +130,22 @@ class Github(DataSource):
 
             return events
 
-        cache_file = "data/github_cache_"+get_current_month()
+        cache_file = "data/github_cache"
         cache_file += "-"+",".join(self.keywords)+".json"
+        cache_file_month = "data/github_cache_"+get_current_month()
+        cache_file_month += "-"+",".join(self.keywords)+".json"
 
-        if not os.path.isfile(cache_file):
-            data = get_events()
-            with open(cache_file, 'w') as f:
-                f.write(json.dumps(data))
-        else:
+        if os.path.isfile(cache_file_month):
+            with open(cache_file_month) as f:
+                data = json.loads(f.read())
+        elif os.path.isfile(cache_file):
+            # Used in first build with clean env
             with open(cache_file) as f:
                 data = json.loads(f.read())
+        else:
+            data = get_events()
+            with open(cache_file_month, 'w') as f:
+                f.write(json.dumps(data))
 
         if 'rows' not in data:
             print data

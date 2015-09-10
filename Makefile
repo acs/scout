@@ -34,7 +34,7 @@ endif
 # Used the meetup cache data to avoid having a real meetup api key by default
 MEETUP_CACHE=data/meetup_groups_cache-$(KEYWORDS).json
 # Used the github cache data to avoid having a real Big Query auth by default
-GITHUB_CACHE=data/github_cache_month.201507-$(KEYWORDS).json
+GITHUB_CACHE=data/github_cache-$(KEYWORDS).json
 GMANE_CACHE=data/gmane_cache-$(KEYWORDS).csv
 REDDIT_CACHE=data/reddit_cache-$(KEYWORDS).json
 STACKOVERFLOW_CACHE=data/stackoverflow_cache-$(KEYWORDS).json
