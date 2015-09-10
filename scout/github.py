@@ -27,6 +27,7 @@ import httplib2
 import json
 import logging
 import os
+import traceback
 
 from apiclient.discovery import build
 
@@ -137,13 +138,28 @@ class Github(DataSource):
 
         if os.path.isfile(cache_file_month):
             with open(cache_file_month) as f:
-                data = json.loads(f.read())
+                raw_data = f.read()
+                try:
+                    data = json.loads(raw_data)
+                except:
+                    logging.error("Wrong JSON received in Github")
+                    logging.info("Data: " + raw_data)
+                    logging.info("Cache file used: " + cache_file_month)
+                    traceback.print_exc()
+                    return
+
         elif os.path.isfile(cache_file):
             # Used in first build with clean env
             with open(cache_file) as f:
                 data = json.loads(f.read())
         else:
-            data = get_events()
+            try:
+                data = get_events()
+            except:
+                logging.error("Error getting github events with BigQuery API")
+                traceback.print_exc()
+                return
+
             with open(cache_file_month, 'w') as f:
                 f.write(json.dumps(data))
 
@@ -152,10 +168,15 @@ class Github(DataSource):
             raise ValueError("Can't get results from github")
 
         for row in data['rows']:
-            event_data = []
-            for value in row['f']:
-                event_data.append(value['v'])
-            self.insert_event(event_data, fields)
+            try:
+                event_data = []
+                for value in row['f']:
+                    event_data.append(value['v'])
+                self.insert_event(event_data, fields)
+            except:
+                logging.error("Error processing github row result")
+                logging.error(row)
+                traceback.print_exc()
 
     def insert_event(self, event_data, fields):
         from datetime import datetime

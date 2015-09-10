@@ -25,8 +25,10 @@
 
 from datetime import datetime
 import json
+import logging
 import os
 import requests
+import traceback
 
 from scout.datasource import DataSource
 
@@ -102,25 +104,33 @@ class Stackoverflow(DataSource):
                 questions = json.loads(f.read())
 
         for question in questions:
-            # [u'body', u'is_answered', u'view_count', u'tags',
-            # u'last_activity_date', u'answer_count', u'creation_date',
-            # u'score', u'link', u'owner', u'title', u'question_id']
-            question_id = question['question_id']
-            title = question['title']
-            tags = ",".join(question['tags'])
-            creation_date = question['creation_date']
-            creation_date = datetime.fromtimestamp(question['creation_date'])
-            creation_date = creation_date.strftime('%Y-%m-%d %H:%M:%S')
-            body = question['body']
-            url = question['link']
-            author = question['owner']['display_name']
-            author_url = question['owner']['link']
-            score = question['score']
-            view_count = question['view_count']
-            answer_count = question['answer_count']
-            self.insert_event(question_id, title, tags, creation_date, body,
-                              url, author, author_url, score, view_count,
-                              answer_count)
+            try:
+                # [u'body', u'is_answered', u'view_count', u'tags',
+                # u'last_activity_date', u'answer_count', u'creation_date',
+                # u'score', u'link', u'owner', u'title', u'question_id']
+                question_id = question['question_id']
+                title = question['title']
+                tags = ",".join(question['tags'])
+                creation_date = question['creation_date']
+                creation_date = datetime.fromtimestamp(question['creation_date'])
+                creation_date = creation_date.strftime('%Y-%m-%d %H:%M:%S')
+                body = question['body']
+                url = question['link']
+                author = question['owner']['display_name']
+                author_url = ''
+                if 'link' in question['owner']:
+                    author_url = question['owner']['link']
+                score = question['score']
+                view_count = question['view_count']
+                answer_count = question['answer_count']
+                self.insert_event(question_id, title, tags, creation_date, body,
+                                  url, author, author_url, score, view_count,
+                                  answer_count)
+            except:
+                logging.error("Error processing question")
+                logging.error(question)
+                traceback.print_exc()
+
 
     def insert_event(self, question_id, title, tags, creation_date, body,
                      url, author, author_url, score, view_count, answer_count):

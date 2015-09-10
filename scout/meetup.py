@@ -28,6 +28,7 @@ import json
 import logging
 import os
 import requests
+import traceback
 
 
 from scout.datasource import DataSource
@@ -88,48 +89,73 @@ class Meetup(DataSource):
                 kurl = url + "&text="+keyword
                 r = requests.get(kurl, verify=False,
                                  headers={'user-agent': 'scout'})
+                if r.status_code == 401:
+                    logging.error("Not authorized API key for Meetup")
+                    print self.key
+                    return
+
                 groups += r.json()
-            with open(cache_file, 'w') as f:
-                # Now we need to get all events for groups
-                for group in groups:
-                    logging.info("Getting events for group: " + group['name'])
-                    url = "https://api.meetup.com"
-                    url += "/2/events?"
-                    url += "&group_id="+str(group['id'])
-                    url += "&status=upcoming,past"
-                    url += "&key="+self.key
-                    url += "&order=time"
-                    r = requests.get(url, verify=False,
-                                     headers={'user-agent': 'scout'})
-                    events_data = r.json()
-                    # print (events_data)
-                    events[group['name']] = events_data
-                f.write(json.dumps({"groups": groups, "events": events}))
+
+            # Now we need to get all events for groups
+
+            for group in groups:
+                logging.info("Getting events for group: " + group['name'])
+                url = "https://api.meetup.com"
+                url += "/2/events?"
+                url += "&group_id="+str(group['id'])
+                url += "&status=upcoming,past"
+                url += "&key="+self.key
+                url += "&order=time"
+                r = requests.get(url, verify=False,
+                                 headers={'user-agent': 'scout'})
+                events_data = r.json()
+                # print (events_data)
+                events[group['name']] = events_data
+
+            f = open(cache_file, 'w')
+            f.write(json.dumps({"groups": groups, "events": events}))
+            f.close()
+
         else:
             with open(cache_file) as f:
-                data = json.loads(f.read())
+                raw_data = f.read()
+                try:
+                    data = json.loads(raw_data)
+                except:
+                    logging.error("Wrong JSON received in Meetup")
+                    logging.info("Data: " + raw_data)
+                    logging.info("Cache file used: " + cache_file)
+                    traceback.print_exc()
+                    return
+
 
             for group in data['events']:
                 gevents = data['events'][group]
                 for event in gevents['results']:
-                    meetup_id = event['id']
-                    title = event['name']
-                    created = datetime.fromtimestamp(event['created']/1000)
-                    created = created.strftime('%Y-%m-%d %H:%M:%S')
-                    url = event['event_url']
-                    author = event['group']['urlname']
-                    if 'description' in event:
-                        body = event['description']
-                    else:
-                        body = ''
-                    if 'rating' in event:
-                        score = event['rating']['average']
-                    else:
-                        score = 0  # hack: it should be NULL in MySQL
-                    yes_rsvp_count = event['yes_rsvp_count']
-                    status = event['status']
-                    self.insert_event(meetup_id, title, created, url, author,
-                                      body, score, yes_rsvp_count, status)
+
+                    try:
+                        meetup_id = event['id']
+                        title = event['name']
+                        created = datetime.fromtimestamp(event['created']/1000)
+                        created = created.strftime('%Y-%m-%d %H:%M:%S')
+                        url = event['event_url']
+                        author = event['group']['urlname']
+                        if 'description' in event:
+                            body = event['description']
+                        else:
+                            body = ''
+                        if 'rating' in event:
+                            score = event['rating']['average']
+                        else:
+                            score = 0  # hack: it should be NULL in MySQL
+                        yes_rsvp_count = event['yes_rsvp_count']
+                        status = event['status']
+                        self.insert_event(meetup_id, title, created, url, author,
+                                          body, score, yes_rsvp_count, status)
+                    except:
+                        logging.error("Error processing meetup event")
+                        logging.error(event)
+                        traceback.print_exc()
 
     def insert_event(self, meetup_id, title, created,
                      url, author, body, score, yes_rsvp_count, status):

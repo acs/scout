@@ -27,6 +27,7 @@ from datetime import datetime
 import json
 import logging
 import os
+import traceback
 
 from scout.datasource import DataSource
 
@@ -92,19 +93,25 @@ class Reddit(DataSource):
                              child['kind'])
                 continue
 
-            cdata = child['data']
-            reddit_id = cdata['id']
-            title = cdata['title']
-            created = datetime.fromtimestamp(cdata['created'])
-            created = created.strftime('%Y-%m-%d %H:%M:%S')
-            url = cdata['permalink']
-            author = cdata['author']
-            body = cdata['selftext']
-            score = cdata['score']
-            likes = cdata['likes']
-            ncomments = cdata['num_comments']
-            self.insert_event(reddit_id, title, created, url, author,
-                              body, score, likes, ncomments)
+            try:
+                cdata = child['data']
+                reddit_id = cdata['id']
+                title = cdata['title']
+                created = datetime.fromtimestamp(cdata['created'])
+                created = created.strftime('%Y-%m-%d %H:%M:%S')
+                url = cdata['permalink']
+                author = cdata['author']
+                body = cdata['selftext']
+                score = cdata['score']
+                likes = cdata['likes']
+                ncomments = cdata['num_comments']
+                self.insert_event(reddit_id, title, created, url, author,
+                                  body, score, likes, ncomments)
+            except:
+                logging.error("Error processing reddit item")
+                logging.error(child)
+                traceback.print_exc()
+
 
     def insert_event(self, reddit_id, title, created,
                      url, author, body, score, likes, ncomments):
