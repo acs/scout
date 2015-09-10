@@ -38,6 +38,7 @@ GITHUB_CACHE=data/github_cache-$(KEYWORDS).json
 GMANE_CACHE=data/gmane_cache-$(KEYWORDS).csv
 REDDIT_CACHE=data/reddit_cache-$(KEYWORDS).json
 STACKOVERFLOW_CACHE=data/stackoverflow_cache-$(KEYWORDS).json
+ALL_CACHE=$(MEETUP_CACHE) $(GITHUB_CACHE) $(GMANE_CACHE) $(REDDIT_CACHE) $(STACKOVERFLOW_CACHE)
 
 ifndef $(EVENTS_LIMIT)
 	EVENTS_LIMIT=10
@@ -75,7 +76,8 @@ meetup: $(MEETUP_CACHE)
 	@echo "meetup_api_key file must include a Meetup API KEY to refresh data\n"
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
 
-newevents:
+# By default work with cache files for default keyword
+newevents: $(ALL_CACHE)
 	$(SCOUT_CONF)
 
 #
