@@ -98,6 +98,7 @@ deploy: $(APP_JSON_DIR)/scout-categories.json
 	cd html && npm install && cd ..
 	rm -rf $(DEPLOY)/app
 	cp -a html/app $(DEPLOY)
+	cp conf/scout.conf $(DEPLOY)
 	rm -rf $(DEPLOY)/app/bower_components
 	cp -a html/bower_components $(DEPLOY)/app
 	# rm -rf $(DEPLOY)/app/data/json
