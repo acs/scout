@@ -97,7 +97,8 @@ class Gmane(DataSource):
                     created = fields[3]
                     # http://bugs.python.org/issue6641: removed timezone +0000
                     created = created[:-6]
-                    created = datetime.strptime(created, '%a, %d %b %Y %H:%M:%S')
+                    created = datetime.strptime(created,
+                                                '%a, %d %b %Y %H:%M:%S')
                     created = created.strftime('%Y-%m-%d %H:%M:%S')
                     # http://article.gmane.org/gmane.comp.apache.tika.devel
                     # /16806/match=centos
@@ -105,12 +106,12 @@ class Gmane(DataSource):
                     url += "/match=" + "+".join(self.keywords)
                     author = fields[2]
                     body = ''  # NOV output does not include body
-                    self.insert_event(gmane_id, title, created, url, author, body)
+                    self.insert_event(gmane_id, title, created,
+                                      url, author, body)
                 except:
                     logging.error("Error processing gmane email")
                     logging.error(cdata)
                     traceback.print_exc()
-
 
     def insert_event(self, gmane_id, title, created, url, author, body):
         # fields not included in CSV file

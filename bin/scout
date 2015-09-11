@@ -101,7 +101,6 @@ def read_options():
                       dest="json_dir",
                       help="Directory for storing JSON with events")
 
-
     (opts, args) = parser.parse_args()
 
     if len(args) != 0:
@@ -209,8 +208,8 @@ def create_events(backend, db, keywords, category, json_dir,
                "keywords": keywords}
         filename = os.path.join(json_dir, keywords_file+"-"+backend+".json")
         if limit is not None:
-            filename = os.path.join(json_dir, keywords_file+"-"+ \
-                                    backend+"-"+limit+".json")
+            filename = os.path.join(json_dir, keywords_file + "-" +
+                                    backend + "-" + limit + ".json")
         createJSON(res, filename)
 
     # Create JSON file with backends available and other config info

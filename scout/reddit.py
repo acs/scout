@@ -112,7 +112,6 @@ class Reddit(DataSource):
                 logging.error(child)
                 traceback.print_exc()
 
-
     def insert_event(self, reddit_id, title, created,
                      url, author, body, score, likes, ncomments):
         # fields not included in CSV file

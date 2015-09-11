@@ -128,7 +128,6 @@ class Meetup(DataSource):
                     traceback.print_exc()
                     return
 
-
             for group in data['events']:
                 gevents = data['events'][group]
                 for event in gevents['results']:
@@ -150,8 +149,9 @@ class Meetup(DataSource):
                             score = 0  # hack: it should be NULL in MySQL
                         yes_rsvp_count = event['yes_rsvp_count']
                         status = event['status']
-                        self.insert_event(meetup_id, title, created, url, author,
-                                          body, score, yes_rsvp_count, status)
+                        self.insert_event(meetup_id, title, created, url,
+                                          author, body, score, yes_rsvp_count,
+                                          status)
                     except:
                         logging.error("Error processing meetup event")
                         logging.error(event)

@@ -112,7 +112,8 @@ class Stackoverflow(DataSource):
                 title = question['title']
                 tags = ",".join(question['tags'])
                 creation_date = question['creation_date']
-                creation_date = datetime.fromtimestamp(question['creation_date'])
+                creation_date = \
+                    datetime.fromtimestamp(question['creation_date'])
                 creation_date = creation_date.strftime('%Y-%m-%d %H:%M:%S')
                 body = question['body']
                 url = question['link']
@@ -123,14 +124,13 @@ class Stackoverflow(DataSource):
                 score = question['score']
                 view_count = question['view_count']
                 answer_count = question['answer_count']
-                self.insert_event(question_id, title, tags, creation_date, body,
-                                  url, author, author_url, score, view_count,
-                                  answer_count)
+                self.insert_event(question_id, title, tags, creation_date,
+                                  body, url, author, author_url, score,
+                                  view_count, answer_count)
             except:
                 logging.error("Error processing question")
                 logging.error(question)
                 traceback.print_exc()
-
 
     def insert_event(self, question_id, title, tags, creation_date, body,
                      url, author, author_url, score, view_count, answer_count):
