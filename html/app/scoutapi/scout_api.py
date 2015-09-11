@@ -2,12 +2,14 @@ from flask import Flask, request, Response
 from ConfigParser import SafeConfigParser
 import os
 import subprocess
+from time import gmtime, strftime
 import traceback
 
 
 app = Flask(__name__)
 scout_home = "/home/bitergia/scout"
-scout_conf = scout_home +"/conf/scout.conf"
+scout_www = "/var/www/html"
+scout_conf = scout_www +"/scout.conf"
 
 @app.route("/api/category/<name>", methods = ['GET'])
 def get_category(name):
@@ -52,8 +54,18 @@ def add_category(category):
 def update_scout():
     # Launch scout to update events and deploy them to web server
 
-    log_dir = os.path.join(scout_home,"html/app/logs")
-    command = os.path.join(scout_home,"utils/update-scout.sh " + log_dir)
+    log_dir = os.path.join(scout_www,"logs")
+    log_date = strftime("%Y-%m-%d_%H:%M:%S", gmtime())
+    log_file = os.path.join(log_dir, "scout_"+log_date+".log")
+
+    command = "PYTHONPATH="+scout_home+" "
+    command += scout_home+"/bin/scout "
+    command += "--conf " + scout_conf + " "
+    command += "--json-dir="+scout_www+"/data/json/ "
+    command += "> " + log_file + " 2>&1"
+
+    print command
+
     res = subprocess.call(command, shell = True)
 
     return res

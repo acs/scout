@@ -91,7 +91,6 @@ class Meetup(DataSource):
                                  headers={'user-agent': 'scout'})
                 if r.status_code == 401:
                     logging.error("Not authorized API key for Meetup")
-                    print self.key
                     return
 
                 groups += r.json()
