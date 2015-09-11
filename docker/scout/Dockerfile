@@ -58,6 +58,7 @@ USER ${DEPLOY_USER}
 WORKDIR ${DEPLOY_USER_DIR}
 
 # get Scout repository
+ENV test test1
 RUN git clone https://github.com/acs/scout scout
 
 # Generate events and deploy them
@@ -71,3 +72,6 @@ RUN mv /var/www/html /var/www/html.orig && \
     mkdir /var/www/data && \
     mkdir /var/www/html/logs && \
     chown -R www-data:www-data /var/www/html /var/www/data
+
+ADD 000-default.conf /etc/apache2/sites-available/000-default.conf
+
