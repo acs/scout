@@ -22,6 +22,8 @@ bower_components
 node_modules
 meetup_api_key
 bigquery_credentials.dat
+html/app/data/json
+html/e2e-tests
 
 # Installer logs
 pip-log.txt
