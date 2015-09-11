@@ -37,7 +37,17 @@ RUN easy_install google-api-python-client && \
 ADD configure-mysql.sh ${SCRIPTS_DIR}/configure-mysql.sh
 # preseed debconf to set the mysql root password
 RUN ${SCRIPTS_DIR}/configure-mysql.sh
-RUN apt-get update && apt-get install -qy mysql-server
+RUN apt-get update && apt-get install -qy mysql-server && apt-get clean
+
+# For testing with Protractor and PhantomJS
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends \
+    openjdk-7-jre \
+    phantomjs && \
+    apt-get clean
+
+RUN npm -g install protractor && \
+    webdriver-manager update
 
 # jshint style for javascript code quality
 RUN npm install -g jshint
@@ -55,17 +65,9 @@ RUN sudo service mysql start && \
     cd scout && make all
 
 USER root
-RUN mv /var/www/html /var/www/html.orig
-RUN ln -s ${DEPLOY_USER_DIR}/app /var/www/html
-
-# For testing with Protractor and PhantomJS
-RUN apt-get update && \
-    apt-get -y install --no-install-recommends \
-    openjdk-7-jre \
-    phantomjs
-
-RUN npm -g install protractor && \
-    webdriver-manager update
-
-# Basic cleanup
-RUN apt-get clean
+# Configure scout web app
+RUN mv /var/www/html /var/www/html.orig && \
+    cp -a ${DEPLOY_USER_DIR}/app /var/www/html && \
+    mkdir /var/www/data && \
+    mkdir /var/www/html/logs && \
+    chown -R www-data:www-data /var/www/html /var/www/data
