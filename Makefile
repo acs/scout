@@ -46,7 +46,7 @@ ifndef $(EVENTS_LIMIT)
 endif
 
 SCOUT=PYTHONPATH=. bin/scout --keywords $(KEYWORDS) --category $(CATEGORY) --limit $(EVENTS_LIMIT)
-SCOUT_CONF=PYTHONPATH=. bin/scout --conf scout.conf
+SCOUT_CONF=PYTHONPATH=. bin/scout --conf conf/scout.conf
 
 #
 # PYTHON
@@ -74,8 +74,8 @@ gmane: $(GMANE_CACHE)
 	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@
 
 meetup: $(MEETUP_CACHE)
-	@echo "meetup_api_key file must include a Meetup API KEY to refresh data\n"
-	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat meetup_api_key`
+	@echo "conf/meetup_api_key file must include a Meetup API KEY to refresh data\n"
+	$(SCOUT) -d $(DBNAME) -u $(DBUSER) -b $@ --key `cat conf/meetup_api_key`
 
 # By default work with cache files for default keyword
 newevents: $(ALL_CACHE)

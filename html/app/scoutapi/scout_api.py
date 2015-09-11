@@ -7,7 +7,7 @@ import traceback
 
 app = Flask(__name__)
 scout_home = "/home/bitergia/scout"
-scout_conf = scout_home +"/scout.conf"
+scout_conf = scout_home +"/conf/scout.conf"
 
 @app.route("/api/category/<name>", methods = ['GET'])
 def get_category(name):
@@ -42,16 +42,18 @@ def add_category(category):
         # Time to write the new config file
         # TODO: control concurrency
         write_config(config)
-        # res = update_scout()
+        res = update_scout()
     except:
         traceback.print_exc()
 
     return config
 
+
 def update_scout():
     # Launch scout to update events and deploy them to web server
 
-    command = os.path.join(scout_home,"utils/update-scout.sh")
+    log_dir = os.path.join(scout_home,"html/app/logs")
+    command = os.path.join(scout_home,"utils/update-scout.sh " + log_dir)
     res = subprocess.call(command, shell = True)
 
     return res
@@ -86,8 +88,6 @@ def write_config(config):
 
     os.rename(scout_conf, scout_conf+".old")
     fd = open(scout_conf, 'w')
-
-    print "write_config"
 
     for section in config:
         parser.add_section(section)
