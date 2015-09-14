@@ -87,7 +87,10 @@ class Github(DataSource):
             # This client_secrets.json should be created as described in
             # https://cloud.google.com/bigquery/bigquery-api-quickstart
             scope = 'https://www.googleapis.com/auth/bigquery'
-            FLOW = flow_from_clientsecrets('conf/client_secrets.json', scope)
+            bigquery_credentials = 'conf/client_secrets.json'
+            if self.key is not None:
+                bigquery_credentials = self.key
+            FLOW = flow_from_clientsecrets(bigquery_credentials, scope)
 
             # Once all auth process is completed this file is created and it is
             # not needed anymore

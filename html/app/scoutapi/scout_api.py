@@ -9,7 +9,7 @@ import traceback
 app = Flask(__name__)
 scout_home = "/home/bitergia/scout"
 scout_www = "/var/www/html"
-scout_conf = scout_www +"/scout.conf"
+scout_conf ="/var/www/conf/scout.conf"
 
 @app.route("/api/category/<name>", methods = ['GET'])
 def get_category(name):

@@ -124,7 +124,7 @@ def get_datasource(backend, db, keywords, limit=None, key=None):
     if backend == "stackoverflow":
         ds = Stackoverflow(db, keywords, limit)
     elif backend == "github":
-        ds = Github(db, keywords, limit)
+        ds = Github(db, keywords, limit, key)
     elif backend == "reddit":
         ds = Reddit(db, keywords, limit)
     elif backend == "gmane":
@@ -275,6 +275,9 @@ def config_scout(opts, categories):
             opts.backends = parser.get(section, 'backends').split(",")
             if 'meetup_key' in options:
                 opts.meetup_key = parser.get(section, 'meetup_key')
+            if 'bigquery_credentials' in options:
+                opts.bigquery_credentials = \
+                    parser.get(section, 'bigquery_credentials')
         elif section.find("category_") == 0:
             category = section.replace("category_", "")
             categories[category] = parser.get(section, 'keywords').split(",")
@@ -294,6 +297,13 @@ def get_backend_key(backend):
             if opts.meetup_key is not None:
                 # config file includes the key
                 key = opts.meetup_key
+        except:  # meetup_key not defined
+            pass
+    elif backend == "github":
+        try:
+            if opts.bigquery_credentials is not None:
+                # config file includes the key
+                key = opts.bigquery_credentials
         except:  # meetup_key not defined
             pass
 

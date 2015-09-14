@@ -69,9 +69,11 @@ USER root
 # Configure scout web app
 RUN mv /var/www/html /var/www/html.orig && \
     cp -a ${DEPLOY_USER_DIR}/app /var/www/html && \
+    cp -a ${DEPLOY_USER_DIR}/scout/conf /var/www/conf && \
+    rm -rf ${DEPLOY_USER_DIR}/app/conf && \
     mkdir /var/www/data && \
     mkdir /var/www/html/logs && \
-    chown -R www-data:www-data /var/www/html /var/www/data
+    chown -R www-data:www-data /var/www/html /var/www/data /var/www/conf
 
 ADD 000-default.conf /etc/apache2/sites-available/000-default.conf
 
