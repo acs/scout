@@ -167,8 +167,8 @@ class Github(DataSource):
                 f.write(json.dumps(data))
 
         if 'rows' not in data:
-            print data
             logging.error("Can't get results from github")
+            logging.error(data)
             return
 
         for row in data['rows']:
