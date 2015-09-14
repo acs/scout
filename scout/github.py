@@ -168,7 +168,8 @@ class Github(DataSource):
 
         if 'rows' not in data:
             print data
-            raise ValueError("Can't get results from github")
+            logging.error("Can't get results from github")
+            return
 
         for row in data['rows']:
             try:
