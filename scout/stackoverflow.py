@@ -92,23 +92,26 @@ class Stackoverflow(DataSource):
                                  headers={'user-agent': 'scout'})
                 questions += r.json()['items']
 
-            # url_tag = url + "&tagged="+self.keyword
-            # r = requests.get(url_tag, verify=False,
-            #                 headers={'user-agent': 'scout'})
-            # z = x.copy()
-            # z.update(y)
             with open(cache_file, 'w') as f:
                 f.write(json.dumps(questions))
         else:
             with open(cache_file) as f:
                 questions = json.loads(f.read())
 
+
+        questions_done = []  # questions already processed
         for question in questions:
             try:
                 # [u'body', u'is_answered', u'view_count', u'tags',
                 # u'last_activity_date', u'answer_count', u'creation_date',
                 # u'score', u'link', u'owner', u'title', u'question_id']
                 question_id = question['question_id']
+                # No include duplicated questions included in several keywords
+                if question_id in questions_done:
+                    continue
+                else:
+                    questions_done.append(question_id)
+
                 title = question['title']
                 tags = ",".join(question['tags'])
                 creation_date = question['creation_date']
