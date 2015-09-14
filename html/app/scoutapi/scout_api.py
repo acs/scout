@@ -10,6 +10,7 @@ app = Flask(__name__)
 scout_home = "/home/bitergia/scout"
 scout_www = "/var/www/html"
 scout_conf ="/var/www/conf/scout.conf"
+scout_cache ="/var/www/data"
 
 @app.route("/api/category/<name>", methods = ['GET'])
 def get_category(name):
@@ -51,12 +52,21 @@ def add_category(category):
     return config
 
 
+def clean_scout_cache():
+
+    print("Removing cache in " + scout_cache)
+
+    [os.remove(os.path.join(scout_cache, f))
+     for f in os.listdir(scout_cache) if f.endswith(".json")]
+
 def update_scout():
     # Launch scout to update events and deploy them to web server
 
     log_dir = os.path.join(scout_www,"logs")
     log_date = strftime("%Y-%m-%d_%H:%M:%S", gmtime())
     log_file = os.path.join(log_dir, "scout_"+log_date+".log")
+
+    clean_scout_cache()
 
     command = "PYTHONPATH="+scout_home+" "
     command += scout_home+"/bin/scout "
