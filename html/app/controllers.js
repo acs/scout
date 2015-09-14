@@ -74,11 +74,11 @@ datasourceControllers.controller('ScoutGlobalCtrl',
             });
         }
 
-        if (Date.parse($scope.dt_from) !== Date.parse($scope.date_min) ||
-                Date.parse($scope.dt_to) !== Date.parse($scope.date_max)) {
+        if (Date.parse($scope.datetime_from) !== Date.parse($scope.date_min) ||
+                Date.parse($scope.datetime_to) !== Date.parse($scope.date_max)) {
             // Filter using dates
-            var date_from = new Date(Date.parse($scope.dt_from));
-            var date_to = new Date(Date.parse($scope.dt_to));
+            var date_from = new Date(Date.parse($scope.datetime_from));
+            var date_to = new Date(Date.parse($scope.datetime_to));
         }
 
         var limit = $scope.scout_events.length + events_page;
@@ -141,12 +141,11 @@ datasourceControllers.controller('ScoutGlobalCtrl',
         $http({method:'GET',url:categories_url})
         .success(function(categories, status, headers, config) {
             $scope.categories = categories;
-            angular.forEach (categories, function (category) {
-                // Show by default the first category
-                $scope.category = category.name;
-                load_data_limited(category);
-                return false;
-            });
+            // Show by default the first category
+            if (categories.length > 0) {
+                $scope.category = categories[0].name;
+                load_data_limited(categories[0]);
+            }
         }).
         error(function(data,status,headers,config){
             $scope.error = data;
@@ -196,14 +195,14 @@ datasourceControllers.controller('ScoutGlobalCtrl',
 
         load_categories(categories);
 
-        dt_init();
+        datetime_init();
     }
 
-    function dt_init() {
+    function datetime_init() {
         $scope.date_min = Events.get_oldest_event_date();
         $scope.date_max = new Date();
-        $scope.dt_from = $scope.date_min;
-        $scope.dt_to = $scope.date_max;
+        $scope.datetime_from = $scope.date_min;
+        $scope.datetime_to = $scope.date_max;
     }
 
     $scope.$watch('scout_events_raw', function (newVal, oldVal) {
@@ -211,17 +210,17 @@ datasourceControllers.controller('ScoutGlobalCtrl',
             return;
         }
         $scope.date_min = Events.get_oldest_event_date();
-        $scope.dt_from = $scope.date_min;
+        $scope.datetime_from = $scope.date_min;
     }, true); // <-- objectEquality
 
-    $scope.$watch('dt_from', function (newVal, oldVal) {
+    $scope.$watch('datetime_from', function (newVal, oldVal) {
         if (newVal === undefined) {
             return;
         }
         $scope.showFilterEvents();
     }, true); // <-- objectEquality
 
-    $scope.$watch('dt_to', function (newVal, oldVal) {
+    $scope.$watch('datetime_to', function (newVal, oldVal) {
         if (newVal === undefined) {
             return;
         }
