@@ -115,46 +115,46 @@ class Meetup(DataSource):
             f.write(json.dumps({"groups": groups, "events": events}))
             f.close()
 
-        else:
-            with open(cache_file) as f:
-                raw_data = f.read()
+
+        with open(cache_file) as f:
+            raw_data = f.read()
+            try:
+                data = json.loads(raw_data)
+            except:
+                logging.error("Wrong JSON received in Meetup")
+                logging.info("Data: " + raw_data)
+                logging.info("Cache file used: " + cache_file)
+                traceback.print_exc()
+                return
+
+        for group in data['events']:
+            gevents = data['events'][group]
+            for event in gevents['results']:
+
                 try:
-                    data = json.loads(raw_data)
+                    meetup_id = event['id']
+                    title = event['name']
+                    created = datetime.fromtimestamp(event['created']/1000)
+                    created = created.strftime('%Y-%m-%d %H:%M:%S')
+                    url = event['event_url']
+                    author = event['group']['urlname']
+                    if 'description' in event:
+                        body = event['description']
+                    else:
+                        body = ''
+                    if 'rating' in event:
+                        score = event['rating']['average']
+                    else:
+                        score = 0  # hack: it should be NULL in MySQL
+                    yes_rsvp_count = event['yes_rsvp_count']
+                    status = event['status']
+                    self.insert_event(meetup_id, title, created, url,
+                                      author, body, score, yes_rsvp_count,
+                                      status)
                 except:
-                    logging.error("Wrong JSON received in Meetup")
-                    logging.info("Data: " + raw_data)
-                    logging.info("Cache file used: " + cache_file)
+                    logging.error("Error processing meetup event")
+                    logging.error(event)
                     traceback.print_exc()
-                    return
-
-            for group in data['events']:
-                gevents = data['events'][group]
-                for event in gevents['results']:
-
-                    try:
-                        meetup_id = event['id']
-                        title = event['name']
-                        created = datetime.fromtimestamp(event['created']/1000)
-                        created = created.strftime('%Y-%m-%d %H:%M:%S')
-                        url = event['event_url']
-                        author = event['group']['urlname']
-                        if 'description' in event:
-                            body = event['description']
-                        else:
-                            body = ''
-                        if 'rating' in event:
-                            score = event['rating']['average']
-                        else:
-                            score = 0  # hack: it should be NULL in MySQL
-                        yes_rsvp_count = event['yes_rsvp_count']
-                        status = event['status']
-                        self.insert_event(meetup_id, title, created, url,
-                                          author, body, score, yes_rsvp_count,
-                                          status)
-                    except:
-                        logging.error("Error processing meetup event")
-                        logging.error(event)
-                        traceback.print_exc()
 
     def insert_event(self, meetup_id, title, created,
                      url, author, body, score, yes_rsvp_count, status):
