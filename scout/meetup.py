@@ -115,7 +115,6 @@ class Meetup(DataSource):
             f.write(json.dumps({"groups": groups, "events": events}))
             f.close()
 
-
         with open(cache_file) as f:
             raw_data = f.read()
             try:

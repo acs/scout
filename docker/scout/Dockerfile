@@ -58,7 +58,6 @@ USER ${DEPLOY_USER}
 WORKDIR ${DEPLOY_USER_DIR}
 
 # get Scout repository
-ENV test test1
 RUN git clone https://github.com/acs/scout scout
 
 # Generate events and deploy them
