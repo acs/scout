@@ -5,6 +5,7 @@
             <option ng-repeat="category in categories">{{category.name}}</option>
           </select>
             <a href ng-click="add_category = 1"><span class="fa fa-plus-circle"></span></a>
+            <a href ng-click="refresh_categories = 1"><span class="fa fa-refresh"></span></a>
           <div class="btn-group btn-group-sm">
             <label ng-repeat="(ds, ds_events) in scout_events_raw"
                 class="btn btn-default" btn-checkbox ng-model="$parent.filter.dss[ds]">
@@ -59,13 +60,13 @@
 
     </div>
 
-    <div class="row">
-        <div  style="padding-top: 1em;" data-ng-show="adding_category"
-        class="alert alert-success alert-dismissable">
+    <!--  Adding category -->
+    <div class="row" style="padding-top: 1em;" data-ng-show="adding_category">
+        <div class="alert alert-success alert-dismissable">
         <button type="button" class="close" data-ng-click="adding_category = 0"
         aria-hidden="true">&times;</button>
         The  new category <b>{{new_category}}</b> is being generated.
-        Contact scout service provider or check it in some minutes.
+        Check <a href="/logs" target="_blank">logs</a> to follow the progress.
         </div>
     </div>
 
@@ -85,6 +86,29 @@
             class="btn btn-warning btn-sm" >Cancel</button>
         </form>
     </div>
+    <!--  End Adding category -->
+
+    <!--  Refresh categories -->
+    <div class="row" style="padding-top: 1em;" data-ng-show="refresh_categories">
+        <form>
+          Refresh process is time and resource consuming. Are you sure?
+          <button id="refreshCategory_button" type="button"
+            ng-click="refreshCategories()"
+            class="btn btn-success btn-sm" >Refresh Categories</button>
+          <button id="cancel_button" type="button" ng-click="refresh_categories = 0"
+            class="btn btn-warning btn-sm" >Cancel</button>
+        </form>
+    </div>
+
+    <div class="row" style="padding-top: 1em;" data-ng-show="refreshing_categories">
+        <div class="alert alert-success alert-dismissable">
+        <button type="button" class="close" data-ng-click="refreshing_categories = 0"
+        aria-hidden="true">&times;</button>
+        Categories contents are being refreshed.
+        Check <a href="/logs" target="_blank">logs</a> to follow the progress.
+        </div>
+    </div>
+    <!--  End Refresh categories -->
 
     <div class="row" style="padding-top: 1em;"
         data-ng-show="scout_events != undefined">

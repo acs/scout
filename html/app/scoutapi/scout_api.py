@@ -35,6 +35,18 @@ def create_category():
         resp = Response("JSON data for category not received", status=502)
         return resp
 
+@app.route("/api/refresh", methods = ['GET'])
+def refresh_categories():
+
+    clean_cache = True
+
+    res = update_scout(clean_cache)
+
+    if res == 0:
+        res = "Refresh in process ... check logs to see progress"
+
+    return res
+
 def add_category(category):
     name = category.keys()[0]
     cat_name = "category_" + name  # section name for a category in config
@@ -51,7 +63,6 @@ def add_category(category):
 
     return config
 
-
 def clean_scout_cache():
 
     print("Removing cache in " + scout_cache)
@@ -59,20 +70,30 @@ def clean_scout_cache():
     [os.remove(os.path.join(scout_cache, f))
      for f in os.listdir(scout_cache) if f.endswith(".json")]
 
-def update_scout():
+def update_scout(clean_cache = False):
     # Launch scout to update events and deploy them to web server
+
+    # First check if it is running. If so, do nothing
+    if 'scout' in subprocess.check_output(["ps", "-A"]):
+        msg = "scout already running ..."
+        print msg
+        return msg
 
     log_dir = os.path.join(scout_www,"logs")
     log_date = strftime("%Y-%m-%d_%H:%M:%S", gmtime())
     log_file = os.path.join(log_dir, "scout_"+log_date+".log")
 
-    clean_scout_cache()
+    if clean_cache:
+        clean_scout_cache()
 
     command = "PYTHONPATH="+scout_home+" "
     command += scout_home+"/bin/scout "
     command += "--conf " + scout_conf + " "
     command += "--json-dir="+scout_www+"/data/json/ "
     command += "> " + log_file + " 2>&1"
+
+    command += " & "  # execute the process in background
+
 
     print command
 

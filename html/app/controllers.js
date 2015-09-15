@@ -172,11 +172,34 @@ datasourceControllers.controller('ScoutGlobalCtrl',
             // $scope.adding_category = 0;
         })
         .error(function(data,status,headers,config){
-            console.log("Error in projects urls " + data);
+            console.log("Error adding category " + data);
             $scope.error = data;
             // $scope.adding_category = 0;
         });
     };
+
+    $scope.refreshCategories = function(){
+        // Refresh categories downloading new events for all of them
+        $scope.refresh_categories = 0;
+        $scope.refreshing_categories = 1;
+
+        var api_url = "/scoutapi/api/refresh";
+
+        console.log("Refreshing categories")
+
+        $http({method:'GET',url:api_url})
+        .success(function(data, status, headers, config) {
+            console.log(data);
+            $scope.message = data;
+            // $scope.adding_category = 0;
+        })
+        .error(function(data,status,headers,config){
+            console.log("Error in refreshing events " + data);
+            $scope.error = data;
+            // $scope.adding_category = 0;
+        });
+    };
+
 
     $scope.getEventAuthor = function(author_html) {
         var url = $sce.trustAsHtml(author_html);
