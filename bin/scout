@@ -312,6 +312,8 @@ def get_backend_key(backend):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+    logging.info("*** scout started ***")
+
     categories = {}  # dict with category and its keywords
 
     opts = read_options()  # opts used in all places as config object
@@ -354,5 +356,7 @@ if __name__ == '__main__':
                               opts.limit, get_backend_key(backend))
 
         db.close_database()
+
+    logging.info("*** scout finished ***")
 
     sys.exit(0)
