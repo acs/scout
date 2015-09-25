@@ -249,7 +249,7 @@ var Events = {};
         var timeline = Events.get_timeline_events();
         var oldest;
         if (timeline.length > 0) {
-            oldest = new Date(timeline[timeline.length - 1].date);
+            oldest = new Date(timeline[timeline.length - 1].date.replace(/-/g,"/"));
         }
         return oldest;
     };
